@@ -177,6 +177,8 @@ userSchema.index({ niche:1 }); userSchema.index({ verificationStatus:1 }); userS
 userSchema.index({ crmStatus:1 }); userSchema.index({ brandCrmStatus:1 }); userSchema.index({ assignedTeamMember:1 });
 userSchema.index({ availability:1 }); userSchema.index({ nextFollowUpDate:1 });
 userSchema.index({ 'trustScore.overall':-1 });
+userSchema.index({ role:1, isDeleted:1, casScore:-1 });
+userSchema.index({ activeRole:1, isDeleted:1 });
 
 userSchema.pre('validate', function(next) {
   if (!this.roles || this.roles.length === 0) {
@@ -306,6 +308,8 @@ const campaignSchema = new mongoose.Schema({
 }, { timestamps:true, toJSON:{virtuals:true}, toObject:{virtuals:true} });
 
 campaignSchema.index({ workflowStatus:1 }); campaignSchema.index({ status:1,deadline:1 }); campaignSchema.index({ niche:1 }); campaignSchema.index({ brand:1 }); campaignSchema.index({ isDeleted:1 }); campaignSchema.index({ 'assignedCreators.creator':1 });
+campaignSchema.index({ status:1, brand:1, isDeleted:1, createdAt:-1 });
+campaignSchema.index({ isDeleted:1, createdAt:-1 });
 campaignSchema.virtual('daysLeft').get(function() { return Math.max(0,Math.ceil((this.deadline-new Date())/86400000)); });
 campaignSchema.virtual('assignedCount').get(function() { return this.assignedCreators?.length||0; });
 campaignSchema.virtual('completionPct').get(function() {

@@ -38,8 +38,8 @@ router.get('/dashboard', adminOnly, async (req,res) => {
       Task.countDocuments({status:{$ne:'done'},dueDate:{$lt:new Date()},isArchived:false,isDeleted:{$ne:true}}),
     ]);
     const [recentCampaigns,recentUsers,txTotal] = await Promise.all([
-      Campaign.find({workflowStatus:{$in:['brand_submitted','admin_review','creators_assigned','in_progress']},isDeleted:{$ne:true}}).populate('brand','displayName companyName avatar').sort({createdAt:-1}).limit(8),
-      User.find({isDeleted:{$ne:true}}).sort({createdAt:-1}).limit(8).select('displayName role roles niche createdAt avatar rank creatorScore'),
+      Campaign.find({workflowStatus:{$in:['brand_submitted','admin_review','creators_assigned','in_progress']},isDeleted:{$ne:true}}).populate('brand','displayName companyName avatar').sort({createdAt:-1}).limit(8).lean(),
+      User.find({isDeleted:{$ne:true}}).sort({createdAt:-1}).limit(8).select('displayName role roles niche createdAt avatar rank creatorScore').lean(),
       Transaction.aggregate([{$group:{_id:null,total:{$sum:'$amount'}}}]),
     ]);
     res.json({success:true,stats:{totalUsers,totalCreators,totalBrands,totalTeam,totalCampaigns,pendingCampaigns,activeCampaigns,activeTasks,completedTasks,overdueTasks,totalRevenue:txTotal[0]?.total||0},recentCampaigns,recentUsers});

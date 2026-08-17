@@ -1,75 +1,91 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute, GuestRoute } from './router/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
 import { StartupAnimation } from './components/ui';
-
-/* ── Auth ──────────────────────────────────────────── */
-import Landing from './pages/Landing';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import LoginSuccess from './pages/LoginSuccess';
-
-/* ── Creator ───────────────────────────────────────── */
-import CreatorDashboard from './pages/creator/Dashboard';
-import AssignedCampaigns from './pages/creator/AssignedCampaigns';
-import CreatorAnalytics from './pages/creator/CreatorInsights';
-import CreatorEarnings from './pages/creator/Earnings';
-import Leaderboard from './pages/creator/Leaderboard';
-import CreatorProfile from './pages/creator/Profile';
-import Activities from './pages/creator/Activities';
-import Academy from './pages/creator/Academy';
-import Community from './pages/creator/Community';
-
-/* ── Brand ─────────────────────────────────────────── */
-import BrandDashboard from './pages/brand/BrandDashboard';
-import CreateCampaign from './pages/brand/CreateCampaign';
-import BrandCampaigns from './pages/brand/BrandCampaigns';
-import BrandAnalytics from './pages/brand/BrandInsights';
-import CampaignDetail from './pages/brand/CampaignDetail';
-import BrandProfile from './pages/brand/Profile';
-import ReelTracker from './pages/brand/ReelTracker';
-
-/* ── Admin ─────────────────────────────────────────── */
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminCampaigns from './pages/admin/AdminCampaigns';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminAnalytics from './pages/admin/AdminInsights';
-import AdminCreatorApproval from './pages/admin/AdminCreatorApproval';
-import AdminReelAnalytics from './pages/admin/AdminReelStats';
-import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
-import CampaignRooms from './pages/admin/CampaignRooms';
-import CreatorCRM from './pages/admin/CreatorCRM';
-import BrandCRM from './pages/admin/BrandCRM';
-import RevenueDashboard from './pages/admin/RevenueDashboard';
-import AuditLogs from './pages/admin/AuditLogs';
-import RoleManager from './pages/admin/RoleManager';
-import KnowledgeBase from './pages/admin/KnowledgeBase';
-import TeamManagement from './pages/admin/TeamManagement';
-import TeamMemberDetail from './pages/admin/TeamMemberDetail';
-import AdminLeaderboard from './pages/admin/AdminLeaderboard';
-import CreatorIntelligence from './pages/admin/CreatorIntelligence';
-import CampaignWorkspacePage from './pages/admin/CampaignWorkspacePage';
-
-/* ── Team ──────────────────────────────────────────── */
-import TeamWorkspace from './pages/team/TeamWorkspace';
-import TaskManager from './pages/team/TaskManager';
-import DMTracker from './pages/team/DMTracker';
-import TeamDirectory from './pages/team/TeamDirectory';
-
-/* ── Shared ────────────────────────────────────────── */
-import CampaignRoom from './pages/shared/CampaignRoom';
-import UniversalSearch from './pages/shared/UniversalSearch';
-import CommunityAdmin from './pages/shared/CommunityAdmin';
-import Opportunities from './pages/shared/Opportunities';
-import OpportunityAdmin from './pages/admin/OpportunityAdmin';
-import ManagementHub from './pages/admin/ManagementHub';
-import NotificationCenter from './pages/admin/NotificationCenter';
 import DynamicSEO from './components/common/DynamicSEO';
+
+/* ── Lazy Loaded Pages ─────────────────────────────── */
+
+/* ── Auth ── */
+const Landing      = lazy(() => import('./pages/Landing'));
+const Login        = lazy(() => import('./pages/auth/Login'));
+const Register     = lazy(() => import('./pages/auth/Register'));
+const LoginSuccess = lazy(() => import('./pages/LoginSuccess'));
+
+/* ── Creator ── */
+const CreatorDashboard  = lazy(() => import('./pages/creator/Dashboard'));
+const AssignedCampaigns = lazy(() => import('./pages/creator/AssignedCampaigns'));
+const CreatorAnalytics  = lazy(() => import('./pages/creator/CreatorInsights'));
+const CreatorEarnings   = lazy(() => import('./pages/creator/Earnings'));
+const Leaderboard       = lazy(() => import('./pages/creator/Leaderboard'));
+const CreatorProfile    = lazy(() => import('./pages/creator/Profile'));
+const Activities        = lazy(() => import('./pages/creator/Activities'));
+const Academy           = lazy(() => import('./pages/creator/Academy'));
+const Community         = lazy(() => import('./pages/creator/Community'));
+
+/* ── Brand ── */
+const BrandDashboard  = lazy(() => import('./pages/brand/BrandDashboard'));
+const CreateCampaign  = lazy(() => import('./pages/brand/CreateCampaign'));
+const BrandCampaigns  = lazy(() => import('./pages/brand/BrandCampaigns'));
+const BrandAnalytics  = lazy(() => import('./pages/brand/BrandInsights'));
+const CampaignDetail  = lazy(() => import('./pages/brand/CampaignDetail'));
+const BrandProfile    = lazy(() => import('./pages/brand/Profile'));
+const ReelTracker     = lazy(() => import('./pages/brand/ReelTracker'));
+
+/* ── Admin ── */
+const AdminDashboard        = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminCampaigns        = lazy(() => import('./pages/admin/AdminCampaigns'));
+const AdminUsers            = lazy(() => import('./pages/admin/AdminUsers'));
+const AdminAnalytics        = lazy(() => import('./pages/admin/AdminInsights'));
+const AdminCreatorApproval = lazy(() => import('./pages/admin/AdminCreatorApproval'));
+const AdminReelAnalytics    = lazy(() => import('./pages/admin/AdminReelStats'));
+const SuperAdminDashboard   = lazy(() => import('./pages/admin/SuperAdminDashboard'));
+const CampaignRooms         = lazy(() => import('./pages/admin/CampaignRooms'));
+const CreatorCRM            = lazy(() => import('./pages/admin/CreatorCRM'));
+const BrandCRM              = lazy(() => import('./pages/admin/BrandCRM'));
+const RevenueDashboard      = lazy(() => import('./pages/admin/RevenueDashboard'));
+const AuditLogs             = lazy(() => import('./pages/admin/AuditLogs'));
+const RoleManager           = lazy(() => import('./pages/admin/RoleManager'));
+const KnowledgeBase         = lazy(() => import('./pages/admin/KnowledgeBase'));
+const TeamManagement        = lazy(() => import('./pages/admin/TeamManagement'));
+const TeamMemberDetail      = lazy(() => import('./pages/admin/TeamMemberDetail'));
+const AdminLeaderboard      = lazy(() => import('./pages/admin/AdminLeaderboard'));
+const CreatorIntelligence   = lazy(() => import('./pages/admin/CreatorIntelligence'));
+const CampaignWorkspacePage = lazy(() => import('./pages/admin/CampaignWorkspacePage'));
+
+/* ── Team ── */
+const TeamWorkspace = lazy(() => import('./pages/team/TeamWorkspace'));
+const TaskManager   = lazy(() => import('./pages/team/TaskManager'));
+const DMTracker     = lazy(() => import('./pages/team/DMTracker'));
+const TeamDirectory = lazy(() => import('./pages/team/TeamDirectory'));
+
+/* ── Shared ── */
+const CampaignRoom       = lazy(() => import('./pages/shared/CampaignRoom'));
+const UniversalSearch    = lazy(() => import('./pages/shared/UniversalSearch'));
+const CommunityAdmin     = lazy(() => import('./pages/shared/CommunityAdmin'));
+const Opportunities      = lazy(() => import('./pages/shared/Opportunities'));
+const OpportunityAdmin   = lazy(() => import('./pages/admin/OpportunityAdmin'));
+const ManagementHub      = lazy(() => import('./pages/admin/ManagementHub'));
+const NotificationCenter = lazy(() => import('./pages/admin/NotificationCenter'));
+
+/* ── Loading Spinner Fallback ── */
+const PageLoader = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+    <div style={{
+      width: '36px', height: '36px', border: '3px solid rgba(99, 102, 241, 0.2)',
+      borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite'
+    }} />
+    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+);
 
 export default function App() {
   return (
     <>
       <DynamicSEO />
+      <Suspense fallback={<PageLoader />}>
+
       <Routes>
       {/* ── Public ──────────────────────────────────── */}
       <Route path="/"              element={<StartupAnimation><Landing /></StartupAnimation>} />
@@ -165,6 +181,7 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   </>
   );
 }

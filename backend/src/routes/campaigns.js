@@ -24,7 +24,8 @@ router.get('/', async (req, res) => {
       .select('-assignedCreators -aiSuggestedCreators -adminReviewNote')
       .sort(sortMap[sort]||sortMap.newest)
       .skip((+page-1)*+limit).limit(+limit)
-      .populate('brand','displayName companyName avatar isVerified');
+      .populate('brand','displayName companyName avatar isVerified')
+      .lean();
     const total = await Campaign.countDocuments(q);
     res.json({ success:true, campaigns, total, pages:Math.ceil(total/+limit), page:+page });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }

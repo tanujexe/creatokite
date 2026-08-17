@@ -98,8 +98,21 @@ async function fetchYouTube(input) {
   }
 }
 
+// ─── Cache ──────────────────────────────────────────────────────────
+const socialCache = new Map();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
 // ─── Master export ──────────────────────────────────────────────────
 async function fetchSocialData(instagramUrl, youtubeUrl) {
+  const cacheKey = `${instagramUrl||''}|${youtubeUrl||''}`;
+  if (cacheKey !== '|') {
+    const cached = socialCache.get(cacheKey);
+    if (cached && (Date.now() - cached.ts < CACHE_TTL_MS)) {
+      console.log(`[Social] Cache hit for ${cacheKey}`);
+      return cached.data;
+    }
+  }
+
   const [ig, yt] = await Promise.allSettled([
     instagramUrl ? scrapeInstagram(instagramUrl) : Promise.resolve(null),
     youtubeUrl   ? fetchYouTube(youtubeUrl)      : Promise.resolve(null),
@@ -110,7 +123,17 @@ async function fetchSocialData(instagramUrl, youtubeUrl) {
   if (igData) console.log(`[Social] Instagram @${igData.username}: ${igData.followers} followers, ${igData.er}% ER, real=${igData.isReal}`);
   if (ytData) console.log(`[Social] YouTube ${ytData.channelTitle}: ${ytData.subscribers} subs, ${ytData.er}% ER`);
 
-  return { igData, ytData };
+  const result = { igData, ytData };
+  if (cacheKey !== '|') {
+    socialCache.set(cacheKey, { ts: Date.now(), data: result });
+    // Limit cache size
+    if (socialCache.size > 500) {
+      const oldestKey = socialCache.keys().next().value;
+      socialCache.delete(oldestKey);
+    }
+  }
+
+  return result;
 }
 
 module.exports = { fetchSocialData };
