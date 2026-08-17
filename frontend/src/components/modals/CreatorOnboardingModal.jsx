@@ -13,6 +13,7 @@ export default function CreatorOnboardingModal({ user, onComplete }) {
 
   const [form, setForm] = useState({
     displayName: user?.displayName || '',
+    phone: user?.phone || '',
     instagramUrl: user?.socialUrls?.instagram || user?.instagramUrl || (user?.handle ? `https://instagram.com/${user.handle}` : ''),
     city: user?.city || user?.location || '',
     niche: user?.niche || 'Tech',
@@ -66,6 +67,7 @@ export default function CreatorOnboardingModal({ user, onComplete }) {
   const handleNextStep = () => {
     if (step === 1) {
       if (!form.displayName?.trim()) return toast.error('Please enter your Full Name');
+      if (!form.phone?.trim()) return toast.error('Please enter your Phone Number');
       if (!form.city?.trim()) return toast.error('Please enter your City / Location');
       if (!form.instagramUrl?.trim()) return toast.error('Please enter your Instagram handle or profile link');
       if (!form.niche) return toast.error('Please select your Niche category');
@@ -153,13 +155,22 @@ export default function CreatorOnboardingModal({ user, onComplete }) {
                 />
               </div>
               <div>
-                <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'block', marginBottom: 5 }}>2. City (Location)</label>
+                <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'block', marginBottom: 5 }}>2. Phone Number *</label>
                 <input
-                  type="text" value={form.city} onChange={e => update('city', e.target.value)}
-                  placeholder="e.g. Mumbai, Delhi" required
+                  type="tel" value={form.phone} onChange={e => update('phone', e.target.value)}
+                  placeholder="+91 98765 43210" required
                   style={{ width: '100%', padding: '10px 12px', background: 'var(--s2, #F0ECE1)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--t1)', outline: 'none' }}
                 />
               </div>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'block', marginBottom: 5 }}>3. City (Location) *</label>
+              <input
+                type="text" value={form.city} onChange={e => update('city', e.target.value)}
+                placeholder="e.g. Mumbai, Delhi" required
+                style={{ width: '100%', padding: '10px 12px', background: 'var(--s2, #F0ECE1)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--t1)', outline: 'none' }}
+              />
             </div>
 
             <div>

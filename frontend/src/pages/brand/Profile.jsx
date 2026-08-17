@@ -8,30 +8,30 @@ import { AlertTriangle, Save, Sparkles, Lock, Trash2, Building2 } from 'lucide-r
 export default function Profile() {
   const { user, refreshUser, setUser } = useAuth();
   const navigate = useNavigate();
-  const [saving, setSaving]   = useState(false);
-  const [form, setForm]       = useState({
-    displayName: user?.displayName||'',
-    email:       user?.email||'',
-    companyName: user?.companyName||'',
-    industry:    user?.industry||'',
-    location:    user?.location||'',
-    website:     user?.website||'',
-    avatar:      user?.avatar||'',
-    bio:         user?.bio||'',
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    displayName: user?.displayName || '',
+    email: user?.email || '',
+    companyName: user?.companyName || '',
+    industry: user?.industry || '',
+    location: user?.location || '',
+    website: user?.website || '',
+    avatar: user?.avatar || '',
+    bio: user?.bio || '',
   });
 
   // Sync user details on mount or change
   useEffect(() => {
     if (user) {
       setForm({
-        displayName: user.displayName||'',
-        email:       user.email||'',
-        companyName: user.companyName||'',
-        industry:    user.industry||'',
-        location:    user.location||'',
-        website:     user.website||'',
-        avatar:      user.avatar||'',
-        bio:         user.bio||'',
+        displayName: user.displayName || '',
+        email: user.email || '',
+        companyName: user.companyName || '',
+        industry: user.industry || '',
+        location: user.location || '',
+        website: user.website || '',
+        avatar: user.avatar || '',
+        bio: user.bio || '',
       });
     }
   }, [user]);
@@ -44,10 +44,10 @@ export default function Profile() {
       await usersAPI.updateProfile(form);
       await refreshUser();
       toast.success('Profile saved!');
-    } catch(e) { 
-      toast.error(e.response?.data?.message || 'Update failed'); 
-    } finally { 
-      setSaving(false); 
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Update failed');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -69,14 +69,14 @@ export default function Profile() {
   const complete = user?.profileComplete || 0;
 
   return (
-    <div className="page-enter" style={{ display:'flex', flexDirection:'column', gap:24 }}>
+    <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Header */}
-      <div className="flex-between" style={{ flexWrap:'wrap', gap:16, alignItems: 'center' }}>
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: 16, alignItems: 'center' }}>
         <div>
-          <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:800, fontSize: 'clamp(24px, 4vw, 32px)', letterSpacing: '-0.02em', color: 'var(--t1)', marginBottom:4 }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 'clamp(24px, 4vw, 32px)', letterSpacing: '-0.02em', color: 'var(--t1)', marginBottom: 4 }}>
             Brand Profile Settings
           </h2>
-          <p style={{ color:'var(--t2)', fontSize:13.5, fontWeight: 500 }}>
+          <p style={{ color: 'var(--t2)', fontSize: 13.5, fontWeight: 500 }}>
             Keep your company details updated so creators get to know your brand better.
           </p>
         </div>
@@ -104,17 +104,17 @@ export default function Profile() {
         borderRadius: 20,
         boxShadow: 'var(--glass-shadow)'
       }}>
-        <div className="flex-between" style={{ marginBottom:10, fontSize:13 }}>
+        <div className="flex-between" style={{ marginBottom: 10, fontSize: 13 }}>
           <span style={{ color: 'var(--acc)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Sparkles size={16} /> Profile Completeness
           </span>
-          <span style={{ fontWeight:900, fontSize: 16, color: 'var(--t1)' }}>{complete}%</span>
+          <span style={{ fontWeight: 900, fontSize: 16, color: 'var(--t1)' }}>{complete}%</span>
         </div>
         <div style={{ height: 10, background: 'var(--s2)', borderRadius: 99, overflow: 'hidden', border: '1px solid var(--border)' }}>
-          <div style={{ height:'100%', width:`${complete}%`, background:'linear-gradient(90deg, #E65F2B 0%, #F5A623 100%)', borderRadius: 99, transition:'width 1s ease' }}/>
+          <div style={{ height: '100%', width: `${complete}%`, background: 'linear-gradient(90deg, #E65F2B 0%, #F5A623 100%)', borderRadius: 99, transition: 'width 1s ease' }} />
         </div>
         {complete < 85 && (
-          <div style={{ fontSize:12, color: 'var(--t2)', marginTop: 10, fontWeight: 500 }}>
+          <div style={{ fontSize: 12, color: 'var(--t2)', marginTop: 10, fontWeight: 500 }}>
             💡 Add company description, industry, location, and website logo to complete your profile.
           </div>
         )}
@@ -122,16 +122,16 @@ export default function Profile() {
 
       {/* ── BASIC INFO ────────────────────────────────────────── */}
       <div style={{
-        display:'flex',
-        flexDirection:'column',
-        gap:18,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 18,
         background: 'var(--s1)',
         border: '1px solid var(--border)',
         borderRadius: 20,
         padding: 24,
         boxShadow: 'var(--glass-shadow)'
       }}>
-        <h3 style={{ fontSize:16, fontWeight:800, color: 'var(--t1)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Building2 size={18} style={{ color: 'var(--acc)' }} /> Company Profile
         </h3>
 
@@ -231,10 +231,10 @@ export default function Profile() {
         padding: 24,
         boxShadow: '0 8px 30px rgba(239,68,68,0.05)'
       }}>
-        <h3 style={{ fontSize:15, fontWeight:800, color:'var(--rose)', display:'flex', alignItems:'center', gap:8, margin: 0 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--rose)', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
           <AlertTriangle size={18} /> Danger Zone
         </h3>
-        <p style={{ color:'var(--t2)', fontSize:13, lineHeight:1.6, fontWeight: 500, margin: 0 }}>
+        <p style={{ color: 'var(--t2)', fontSize: 13, lineHeight: 1.6, fontWeight: 500, margin: 0 }}>
           Once you delete your brand account, there is no going back. All campaigns, transactions, and settings will be permanently removed.
         </p>
         <div>

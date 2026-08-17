@@ -205,7 +205,7 @@ export default function AdminCreatorApproval() {
                           <Avatar src={c.avatar} name={c.displayName} size={32}/>
                           <div>
                             <div style={{ fontWeight:600, fontSize:13 }}>{c.displayName}</div>
-                            <div style={{ fontSize:11, color:'var(--t3)' }}>{c.email}</div>
+                            <div style={{ fontSize:11, color:'var(--t3)' }}>{c.email} {c.phone ? `• 📞 ${c.phone}` : ''}</div>
                           </div>
                         </div>
                       </td>
@@ -213,7 +213,7 @@ export default function AdminCreatorApproval() {
                       <td><CASMini score={c.casScore||0}/></td>
                       {/* Risk */}
                       <td>
-                        <span style={{ display:'flex', alignItems:'center', gap:5, fontSize:12,
+                        <span style={{ display:'flex', alignItems:1, gap:5, fontSize:12,
                           color:RISK_COLOR[c.casRisk]||'var(--t2)', fontWeight:700 }}>
                           <span style={{ width:7, height:7, borderRadius:'50%', background:RISK_COLOR[c.casRisk]||'gray', display:'inline-block' }}/>
                           {c.casRisk||'—'}
@@ -294,8 +294,9 @@ export default function AdminCreatorApproval() {
                               </div>
                             ))}
                           </div>
-                          {(c.socialUrls?.instagram||c.socialUrls?.youtube) && (
-                            <div style={{ marginTop:10, fontSize:11, color:'var(--t3)', display:'flex', gap:14 }}>
+                          {(c.phone || c.socialUrls?.instagram||c.socialUrls?.youtube) && (
+                            <div style={{ marginTop:10, fontSize:11, color:'var(--t3)', display:'flex', gap:14, flexWrap:'wrap' }}>
+                              {c.phone && <span>📞 Phone: <strong style={{ color:'var(--t1)' }}>{c.phone}</strong></span>}
                               {c.socialUrls?.instagram&&<span>📸 {c.socialUrls.instagram}</span>}
                               {c.socialUrls?.youtube&&<span>▶ {c.socialUrls.youtube}</span>}
                             </div>
