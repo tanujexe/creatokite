@@ -1,0 +1,17 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /opportunities
+Allow: /knowledge
+Allow: /leaderboard
+
+# Disallow Private Internal APIs & System Routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /superadmin/
+Disallow: /team/
+
+# Sitemap Location
+Sitemap: https://creatokite.com/sitemap.xml
