@@ -69,14 +69,63 @@ const OpportunityAdmin   = lazy(() => import('./pages/admin/OpportunityAdmin'));
 const ManagementHub      = lazy(() => import('./pages/admin/ManagementHub'));
 const NotificationCenter = lazy(() => import('./pages/admin/NotificationCenter'));
 
-/* ── Loading Spinner Fallback ── */
+/* ── Creative Brand Loading Fallback ── */
 const PageLoader = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-    <div style={{
-      width: '36px', height: '36px', border: '3px solid rgba(99, 102, 241, 0.2)',
-      borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite'
-    }} />
-    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '60vh',
+    position: 'relative',
+    padding: '40px 20px',
+  }}>
+    <div style={{ position: 'relative', width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Outer counter-clockwise ring */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: '50%',
+        border: '2.5px solid rgba(229, 91, 43, 0.12)',
+        borderTopColor: '#E55B2B',
+        borderRightColor: '#F5A623',
+        animation: 'spinReverse 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+      }} />
+
+      {/* Inner clockwise ring */}
+      <div style={{
+        position: 'absolute',
+        inset: 8,
+        borderRadius: '50%',
+        border: '2px solid transparent',
+        borderTopColor: '#E55B2B',
+        animation: 'spinClockwise 0.8s linear infinite',
+      }} />
+
+      <img
+        src="/logo.png"
+        alt="CreatoKite"
+        style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'contain' }}
+        onError={e => { e.currentTarget.src = '/logo.jpeg'; }}
+      />
+    </div>
+
+    <span style={{
+      marginTop: 18,
+      fontSize: 12,
+      fontFamily: '"Figtree", sans-serif',
+      fontWeight: 700,
+      color: '#E55B2B',
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+    }}>
+      Loading CreatoKite…
+    </span>
+
+    <style>{`
+      @keyframes spinClockwise { to { transform: rotate(360deg); } }
+      @keyframes spinReverse { to { transform: rotate(-360deg); } }
+    `}</style>
   </div>
 );
 

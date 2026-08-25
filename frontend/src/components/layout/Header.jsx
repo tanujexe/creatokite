@@ -332,19 +332,6 @@ export default function Header({ onMenuToggle }) {
             >
               <Trophy size={16} style={{ color: '#D97706' }} />
             </button>
-            <button
-              onClick={() => navigate('/admin/creator-intelligence')}
-              style={{
-                width: 38, height: 38, borderRadius: 12, background: 'var(--s1)',
-                border: '1px solid var(--border)', color: 'var(--t1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s',
-                boxShadow: 'var(--glass-shadow)'
-              }}
-              title="Creator Intelligence"
-            >
-              <Brain size={16} style={{ color: '#8b5cf6' }} />
-            </button>
           </div>
         )}
 

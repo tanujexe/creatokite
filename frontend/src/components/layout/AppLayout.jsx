@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Header  from './Header';
+import Header from './Header';
 import BottomNav from './BottomNav';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -118,7 +118,7 @@ export default function AppLayout() {
   const isCreator = activeRole === 'creator';
 
   const toggleSidebar = useCallback(() => setSidebarOpen(v => !v), []);
-  const closeSidebar  = useCallback(() => setSidebarOpen(false), []);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   const isBrand = activeRole === 'brand';
 
