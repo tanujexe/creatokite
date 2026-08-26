@@ -98,8 +98,8 @@ export default function AdminUsers() {
       {loading ? <PageLoader />
         : users.length === 0 ? <EmptyState icon="👤" title="No users found" desc="Try different filters" />
           : <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <div className="table-wrap">
-              <table>
+            <div className="table-wrap" style={{ overflowX: 'auto', width: '100%' }}>
+              <table style={{ width: '100%', minWidth: 680 }}>
                 <thead>
                   <tr><th>User</th><th>Role(s)</th><th>Niche / Company</th><th>Status</th><th>Score</th><th>Joined</th><th>Actions</th></tr>
                 </thead>

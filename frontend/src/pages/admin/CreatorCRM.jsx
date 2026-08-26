@@ -200,7 +200,7 @@ export default function CreatorCRM() {
         : creators.length === 0 ? <EmptyState icon="👤" title="No creators found" desc="Adjust your filters or search query" />
           : <div className="card" style={{ padding: 0, overflow: 'hidden', maxWidth: '100%' }}>
             <div className="table-wrap" style={{ overflowX: 'auto', width: '100%' }}>
-              <table style={{ width: '100%', minWidth: 0 }}>
+              <table style={{ width: '100%', minWidth: 680 }}>
                 <thead>
                   <tr>
                     <th>Creator</th>
@@ -291,14 +291,14 @@ export default function CreatorCRM() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18, fontFamily: 'Inter, sans-serif' }}>
 
             {/* Header Profile Info */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingBottom: 16, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
               <Avatar src={selected.avatar} name={selected.displayName} size={56} />
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', margin: 0 }}>{selected.displayName}</h3>
-                  {selected.isVerified && <span style={{ background: 'rgba(230,95,43,0.12)', color: 'var(--acc)', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99 }}>✓ Verified Creator</span>}
+              <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', margin: 0, wordBreak: 'break-word' }}>{selected.displayName}</h3>
+                  {selected.isVerified && <span style={{ background: 'rgba(230,95,43,0.12)', color: 'var(--acc)', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, flexShrink: 0 }}>✓ Verified Creator</span>}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2, wordBreak: 'break-all' }}>
                   {selected.email ? (
                     <a
                       href={`mailto:${selected.email}`}
@@ -316,15 +316,15 @@ export default function CreatorCRM() {
                 </div>
                 {selected.bio && <p style={{ fontSize: 12, color: 'var(--t2)', marginTop: 6, marginBottom: 0, lineHeight: 1.4 }}>{selected.bio}</p>}
               </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', marginTop: 4 }}>
                 <button
                   type="button"
                   onClick={() => handleSyncCreatorSocial(selected._id)}
                   disabled={syncingSocial}
                   style={{
-                    padding: '7px 14px', background: 'var(--acc, #E65F2B)', color: '#fff',
+                    flex: 1, minWidth: 120, padding: '8px 12px', background: 'var(--acc, #E65F2B)', color: '#fff',
                     border: 'none', borderRadius: 10, fontSize: 11.5, fontWeight: 700,
-                    cursor: syncingSocial ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6
+                    cursor: syncingSocial ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6
                   }}
                 >
                   <RefreshCw size={13} className={syncingSocial ? 'spin' : ''} />
@@ -339,7 +339,7 @@ export default function CreatorCRM() {
                       href={ig.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ padding: '7px 14px', background: 'linear-gradient(135deg,#e1306c,#f77737)', color: '#fff', borderRadius: 10, fontSize: 11.5, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 8px rgba(225, 48, 108, 0.25)' }}
+                      style={{ flex: 1, minWidth: 120, padding: '8px 12px', background: 'linear-gradient(135deg,#e1306c,#f77737)', color: '#fff', borderRadius: 10, fontSize: 11.5, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 2px 8px rgba(225, 48, 108, 0.25)' }}
                     >
                       <Instagram size={14} /> {ig.handle} <ExternalLink size={11} />
                     </a>
@@ -351,7 +351,7 @@ export default function CreatorCRM() {
             {/* 15 Specification Fields Grid */}
             <div>
               <h4 style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>Full Creator Specifications</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
 
                 <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>
                   <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>Phone Number</div>

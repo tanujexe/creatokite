@@ -100,6 +100,7 @@ export const adminAPI = {
   reelStats:           ()         => api.get('/admin/reels/stats').then(unwrap),
   syncSocial:          id         => api.post(`/admin/users/${id}/sync-social`).then(unwrap),
   bulkSyncSocial:      ()         => api.post('/admin/users/bulk-sync-social').then(unwrap),
+  notificationStats:   ()         => api.get('/admin/notifications/stats').then(unwrap),
 };
 
 export const usersAPI = {
