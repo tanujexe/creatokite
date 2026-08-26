@@ -11,12 +11,15 @@ export default function CreatorOnboardingModal({ user, onComplete }) {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
+  const [nicheQuery, setNicheQuery] = useState('');
+
   const [form, setForm] = useState({
     displayName: user?.displayName || '',
     phone: user?.phone || '',
     instagramUrl: user?.socialUrls?.instagram || user?.instagramUrl || (user?.handle ? `https://instagram.com/${user.handle}` : ''),
     city: user?.city || user?.location || '',
     niche: user?.niche || 'Tech',
+    subNiches: user?.subNiches?.length ? user.subNiches : (user?.niche ? [user.niche] : ['Tech']),
     followers: user?.platforms?.instagram?.followers || user?.followers || 0,
     avgViews: user?.avgViews || '',
     engagementRate: user?.platforms?.instagram?.engagement || user?.engagementRate || 0,
@@ -31,6 +34,17 @@ export default function CreatorOnboardingModal({ user, onComplete }) {
   });
 
   const update = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+
+  const handleAddCustomNiche = (rawText) => {
+    const trimmed = rawText.trim();
+    if (!trimmed) return;
+    const current = form.subNiches?.length ? form.subNiches : [form.niche];
+    if (!current.includes(trimmed)) {
+      const updated = [...current, trimmed];
+      setForm(p => ({ ...p, subNiches: updated, niche: updated[0] }));
+    }
+    setNicheQuery('');
+  };
 
   const toggleLanguage = (lang) => {
     setForm(prev => {
@@ -175,7 +189,7 @@ export default function CreatorOnboardingModal({ user, onComplete }) {
 
             <div>
               <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
-                <span>3. Instagram Profile Link / Handle</span>
+                <span>4. Instagram Profile Link / Handle</span>
                 {(user?.socialUrls?.instagram || user?.handle) && <span style={{ fontSize: 10, color: 'var(--acc)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 2 }}><Lock size={10} /> Verified Handle</span>}
               </label>
               <input
@@ -191,31 +205,124 @@ export default function CreatorOnboardingModal({ user, onComplete }) {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <div>
-                <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'block', marginBottom: 5 }}>4. Niche Category</label>
-                <select
-                  value={form.niche} onChange={e => update('niche', e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px', background: 'var(--s2, #F0ECE1)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--t1)', outline: 'none' }}
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'block', marginBottom: 6 }}>
+                5. Creator Niche(s) — Type & Select All That Apply
+              </label>
+              
+              {/* Type / Search Custom Niche Input */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input
+                  type="text"
+                  value={nicheQuery}
+                  onChange={e => setNicheQuery(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCustomNiche(nicheQuery);
+                    }
+                  }}
+                  placeholder="Type custom niche (e.g. Skincare, AI, UGC, Vlogging)..."
+                  style={{
+                    flex: 1, padding: '8px 12px', background: 'var(--s2, #F0ECE1)',
+                    border: '1px solid var(--border)', borderRadius: 10, fontSize: 12.5,
+                    color: 'var(--t1)', outline: 'none'
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleAddCustomNiche(nicheQuery)}
+                  disabled={!nicheQuery.trim()}
+                  style={{
+                    padding: '8px 14px', background: nicheQuery.trim() ? 'var(--acc, #E65F2B)' : 'var(--s2)',
+                    color: nicheQuery.trim() ? '#FFF' : 'var(--t3)', border: 'none', borderRadius: 10,
+                    fontSize: 12, fontWeight: 700, cursor: nicheQuery.trim() ? 'pointer' : 'default',
+                    transition: 'all 0.15s'
+                  }}
                 >
-                  {NICHES.map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+                  + Add
+                </button>
               </div>
-              <div>
-                <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'block', marginBottom: 5 }}>5. Availability Status</label>
-                <select
-                  value={form.availabilityStatus} onChange={e => update('availabilityStatus', e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px', background: 'var(--s2, #F0ECE1)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--t1)', outline: 'none' }}
-                >
-                  <option value="Available">Available for Campaigns</option>
-                  <option value="Busy">Busy (Limited Slots)</option>
-                  <option value="On Leave">On Leave</option>
-                </select>
+
+              {/* Selected Tag Pills */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                {(form.subNiches?.length ? form.subNiches : [form.niche]).map(n => (
+                  <span
+                    key={n}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      padding: '4px 10px', borderRadius: 16,
+                      background: 'rgba(230, 95, 43, 0.12)', color: 'var(--acc, #E65F2B)',
+                      border: '1px solid rgba(230, 95, 43, 0.3)',
+                      fontSize: 12, fontWeight: 700
+                    }}
+                  >
+                    {n}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = form.subNiches?.length ? form.subNiches : [form.niche];
+                        const updated = current.filter(x => x !== n);
+                        const nextNiches = updated.length ? updated : ['General'];
+                        setForm(p => ({ ...p, subNiches: nextNiches, niche: nextNiches[0] }));
+                      }}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--acc, #E65F2B)', padding: 0, fontSize: 14, fontWeight: 900
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              {/* Preset Niche Pills to Quick Add */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {NICHES.map(n => {
+                  const current = form.subNiches?.length ? form.subNiches : [form.niche];
+                  const selected = current.includes(n);
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => {
+                        const updated = selected ? current.filter(x => x !== n) : [...current, n];
+                        const nextNiches = updated.length ? updated : [NICHES[0]];
+                        setForm(p => ({ ...p, subNiches: nextNiches, niche: nextNiches[0] }));
+                      }}
+                      style={{
+                        padding: '4px 9px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                        background: selected ? 'var(--acc, #E65F2B)' : 'var(--s2, #F0ECE1)',
+                        color: selected ? '#FFFFFF' : 'var(--t2)',
+                        border: selected ? '1px solid var(--acc)' : '1px solid var(--border)',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {selected ? `✓ ${n}` : `+ ${n}`}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
+            {/* 6. Open for Barter Deals */}
             <div>
-              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'block', marginBottom: 6 }}>8. Languages Supported</label>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'block', marginBottom: 5 }}>
+                6. Open for Barter Deals?
+              </label>
+              <select
+                value={form.isBarterReady ? 'true' : 'false'}
+                onChange={e => update('isBarterReady', e.target.value === 'true')}
+                style={{ width: '100%', padding: '10px 12px', background: 'var(--s2, #F0ECE1)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--t1)', outline: 'none' }}
+              >
+                <option value="true">🎁 Yes (Open for Barter & Gifting)</option>
+                <option value="false">💼 No (Paid Campaigns Only)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)', display: 'block', marginBottom: 6 }}>7. Languages Supported</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {LANGUAGE_OPTIONS.map(lang => {
                   const sel = form.languages.includes(lang);

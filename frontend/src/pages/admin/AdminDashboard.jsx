@@ -116,6 +116,26 @@ function CampaignHealthCard({ c }) {
   );
 }
 
+const GrowthTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  const val = payload[0].value;
+  return (
+    <div style={{
+      background: 'var(--s1, #1C1917)',
+      border: '1px solid var(--border2, rgba(230, 95, 43, 0.3))',
+      borderRadius: 12,
+      padding: '10px 14px',
+      boxShadow: '0 12px 32px rgba(0,0,0,0.35)',
+      backdropFilter: 'blur(10px)',
+    }}>
+      <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--acc, #E65F2B)', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span>📈</span> {val?.toLocaleString()} New User{val !== 1 ? 's' : ''}
+      </div>
+    </div>
+  );
+};
+
 /* ══════════════════════════════════════════════════════
    MAIN DASHBOARD
    ══════════════════════════════════════════════════════ */
@@ -138,10 +158,16 @@ export default function AdminDashboard() {
       setCampaigns(db.recentCampaigns || []);
       setUsers(db.recentUsers || []);
       setFollowups({ today: fu.today || [], overdue: fu.overdue || [] });
-      const chart = (an.monthlyUsers || []).map(m => ({
-        name: `${m._id?.month}/${String(m._id?.year).slice(2)}`,
-        users: m.count,
-      })).reverse();
+      const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const chart = (an.monthlyUsers || []).map(m => {
+        const mNum = parseInt(m._id?.month) || 1;
+        const mName = MONTH_NAMES[mNum - 1] || `${m._id?.month}`;
+        const yr = String(m._id?.year || '').slice(-2);
+        return {
+          name: `${mName} '${yr}`,
+          users: m.count,
+        };
+      }).reverse();
       setMonthly(chart);
     }).catch(() => toast.error('Failed to load dashboard')).finally(() => setLoading(false));
   }, []);
@@ -266,18 +292,73 @@ export default function AdminDashboard() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 24 }}>
         {/* User Growth Chart */}
-        <div className="card" style={{ padding: 22 }}>
-          <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: 16, fontWeight: 800, color: 'var(--t1)', marginBottom: 16 }}>
-            Monthly User Growth
-          </h3>
-          {monthly.length === 0
-            ? <EmptyState icon="📈" title="No growth data yet" desc="Platform signups will render here" />
-            : <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={monthly}>
-                <Bar dataKey="users" fill="var(--p)" radius={[4,4,0,0]}/>
+        <div className="card hover-lift" style={{
+          padding: 22,
+          background: 'var(--glass-bg)',
+          backdropFilter: 'var(--glass-blur)',
+          WebkitBackdropFilter: 'var(--glass-blur)',
+          border: '1px solid var(--glass-border)',
+          borderRadius: 20,
+          boxShadow: 'var(--glass-shadow)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+            <div>
+              <h3 style={{ fontFamily: "var(--fh)", fontSize: 16, fontWeight: 800, color: 'var(--t1)', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+                <TrendingUp size={18} color="var(--acc)" /> Monthly User Growth
+              </h3>
+              <p style={{ fontSize: 11.5, color: 'var(--t3)', marginTop: 2, fontWeight: 500 }}>
+                Platform creator & brand signup trajectory
+              </p>
+            </div>
+            {monthly.length > 0 && (
+              <span style={{
+                fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 99,
+                background: 'rgba(230, 95, 43, 0.12)', color: 'var(--acc)',
+                border: '1px solid rgba(230, 95, 43, 0.25)',
+                display: 'inline-flex', alignItems: 'center', gap: 4
+              }}>
+                🔥 {monthly.reduce((a, b) => a + (b.users || 0), 0)} Total
+              </span>
+            )}
+          </div>
+
+          {monthly.length === 0 ? (
+            <EmptyState icon="📈" title="No growth data yet" desc="Platform signups will render here" />
+          ) : (
+            <ResponsiveContainer width="100%" height={230}>
+              <BarChart data={monthly} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="userGrowthGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--acc, #E65F2B)" stopOpacity={1} />
+                    <stop offset="100%" stopColor="var(--gold, #D4A24C)" stopOpacity={0.65} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 11, fill: 'var(--t2)', fontWeight: 600 }}
+                  axisLine={false}
+                  tickLine={false}
+                  dy={6}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: 'var(--t3)', fontWeight: 500 }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip content={<GrowthTooltip />} cursor={{ fill: 'rgba(230, 95, 43, 0.08)' }} />
+                <Bar
+                  dataKey="users"
+                  fill="url(#userGrowthGrad)"
+                  radius={[8, 8, 0, 0]}
+                  maxBarSize={44}
+                />
               </BarChart>
             </ResponsiveContainer>
-          }
+          )}
         </div>
 
         {/* Follow-ups Due */}

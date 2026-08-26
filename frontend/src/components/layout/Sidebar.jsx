@@ -203,6 +203,22 @@ const ROLE_META = {
   superadmin: { color: 'var(--acc, #E65F2B)', label: 'SuperAdmin' },
 };
 
+function getIconAnimClass(Icon) {
+  if (Icon === LayoutDashboard) return 'icon-dashboard';
+  if (Icon === BookOpen) return 'icon-book';
+  if (Icon === BarChart2 || Icon === TrendingUp) return 'icon-analytics';
+  if (Icon === Settings || Icon === UserCog) return 'icon-gear';
+  if (Icon === Bell) return 'icon-bell';
+  if (Icon === Zap) return 'icon-zap';
+  if (Icon === Target || Icon === Megaphone || Icon === PlusCircle) return 'icon-target';
+  if (Icon === Wallet || Icon === DollarSign) return 'icon-wallet';
+  if (Icon === Users || Icon === Users2 || Icon === MessageCircle || Icon === MessageSquare || Icon === UserCheck) return 'icon-users';
+  if (Icon === Play || Icon === Activity || Icon === Radio || Icon === CheckSquare) return 'icon-activity';
+  if (Icon === Trophy || Icon === Star || Icon === Shield || Icon === Briefcase) return 'icon-trophy';
+  if (Icon === Home) return 'icon-home';
+  return 'icon-default';
+}
+
 /* ── NavGroup component ─────────────────────────────── */
 function NavGroup({ group, items, meta, onClose, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -225,6 +241,7 @@ function NavGroup({ group, items, meta, onClose, defaultOpen = true }) {
         <div className="nav-group-items">
           {items.map(item => {
             const Icon = item.icon;
+            const animClass = getIconAnimClass(Icon);
             return (
               <NavLink
                 key={item.to}
@@ -233,20 +250,21 @@ function NavGroup({ group, items, meta, onClose, defaultOpen = true }) {
                 onClick={onClose}
                 className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
                 style={({ isActive }) => ({
-                  background: isActive ? 'rgba(230, 95, 43, 0.14)' : 'transparent',
-                  color: isActive ? 'var(--acc, #E65F2B)' : 'var(--t1)',
+                  background: isActive ? 'rgba(230, 95, 43, 0.14)' : undefined,
+                  color: isActive ? 'var(--acc, #E65F2B)' : 'var(--t1, #2C2520)',
                   fontWeight: isActive ? 800 : 500,
                   border: isActive ? '1px solid rgba(230, 95, 43, 0.35)' : '1px solid transparent',
-                  boxShadow: isActive ? '0 2px 8px rgba(230, 95, 43, 0.08)' : 'none',
+                  boxShadow: isActive ? '0 2px 8px rgba(230, 95, 43, 0.08)' : undefined,
                 })}
               >
                 {({ isActive }) => (
                   <>
                     <Icon
                       size={15}
+                      className={`sidebar-icon ${animClass}`}
                       style={{ flexShrink: 0, color: isActive ? 'var(--acc, #E65F2B)' : 'var(--t2)' }}
                     />
-                    <span className="nav-item-label">{item.label}</span>
+                    <span className="nav-item-label" style={{ color: isActive ? 'var(--acc, #E65F2B)' : 'var(--t1, #2C2520)' }}>{item.label}</span>
                     {item.v2 && !isActive && (
                       <span style={{
                         marginLeft: 'auto', fontSize: 8, color: 'var(--acc, #E65F2B)',
@@ -323,9 +341,9 @@ export default function Sidebar({ isOpen, onClose }) {
             title="Go to home page"
           >
             <img
-              src="/logo.jpeg" alt="CreatoKite"
+              src="/logo.png" alt="CreatoKite"
               style={{ width: 30, height: 30, borderRadius: 8, objectFit: 'contain', flexShrink: 0 }}
-              onError={e => { e.currentTarget.style.display = 'none'; }}
+              onError={e => { e.currentTarget.src = '/logo.jpeg'; }}
             />
             <div>
               <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: '800', fontSize: 20, color: 'var(--t1)', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
@@ -402,21 +420,28 @@ export default function Sidebar({ isOpen, onClose }) {
         )}
 
         {/* ── Nav items ─────────────────────────────── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 8px 4px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <button
-            type="button"
-            onClick={() => { onClose(); navigate('/'); }}
-            className="nav-item"
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-              padding: '9px 12px', borderRadius: 'var(--r)', marginBottom: 4,
-              background: 'rgba(74,62,61,0.05)', border: '1px solid var(--border)',
-              color: 'var(--t1)', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-            }}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '10px 8px 4px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <NavLink
+            to="/"
+            end
+            onClick={onClose}
+            className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+            style={({ isActive }) => ({
+              background: isActive ? 'rgba(230, 95, 43, 0.14)' : undefined,
+              color: isActive ? 'var(--acc, #E65F2B)' : 'var(--t1, #2C2520)',
+              fontWeight: isActive ? 800 : 500,
+              border: isActive ? '1px solid rgba(230, 95, 43, 0.35)' : '1px solid transparent',
+              boxShadow: isActive ? '0 2px 8px rgba(230, 95, 43, 0.08)' : undefined,
+              marginBottom: 2,
+            })}
           >
-            <Home size={14} style={{ flexShrink: 0, color: meta.color }} />
-            <span>Home</span>
-          </button>
+            {({ isActive }) => (
+              <>
+                <Home size={15} className="sidebar-icon icon-home" style={{ flexShrink: 0, color: isActive ? 'var(--acc, #E65F2B)' : 'var(--t2)' }} />
+                <span className="nav-item-label" style={{ color: isActive ? 'var(--acc, #E65F2B)' : 'var(--t1, #2C2520)' }}>Home</span>
+              </>
+            )}
+          </NavLink>
           {navGroups.map((grp, idx) => (
             <NavGroup
               key={idx}
@@ -429,34 +454,77 @@ export default function Sidebar({ isOpen, onClose }) {
           ))}
         </div>
 
-        {/* ── User info + logout ─────────────────────── */}
-        <div style={{ padding: '10px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px',
-            borderRadius: 'var(--r)', background: 'rgba(74,62,61,0.05)', marginBottom: 6,
-            border: '1px solid var(--border)',
-          }}>
-            <Avatar src={user?.avatar} name={user?.displayName} size={28} />
+        {/* ── Creative User Card + Logout ─────────────────────── */}
+        <div style={{ padding: '10px 10px 12px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+              borderRadius: 14,
+              background: 'linear-gradient(135deg, rgba(230, 95, 43, 0.08) 0%, rgba(212, 162, 76, 0.04) 100%), var(--s1, #FAF7F2)',
+              marginBottom: 8,
+              border: '1px solid rgba(230, 95, 43, 0.25)',
+              boxShadow: '0 4px 14px rgba(230, 95, 43, 0.06)',
+              transition: 'all 0.22s cubic-bezier(0.25, 1, 0.5, 1)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 18px rgba(230, 95, 43, 0.12)';
+              e.currentTarget.style.borderColor = 'rgba(230, 95, 43, 0.4)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0px)';
+              e.currentTarget.style.boxShadow = '0 4px 14px rgba(230, 95, 43, 0.06)';
+              e.currentTarget.style.borderColor = 'rgba(230, 95, 43, 0.25)';
+            }}
+          >
+            {/* Glowing Avatar Container */}
+            <div style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Avatar src={user?.avatar} name={user?.displayName} size={32} />
+              <div style={{
+                position: 'absolute', inset: -2, borderRadius: '50%',
+                border: '1.5px solid var(--acc, #E65F2B)', pointerEvents: 'none',
+                opacity: 0.8
+              }} />
+            </div>
+
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
-              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: '800', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2, marginBottom: 1 }}>
+              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13.5, fontWeight: '800', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2, marginBottom: 3 }}>
                 {user?.displayName}
               </div>
-              <div style={{ fontFamily: '"EB Garamond", Georgia, serif', fontStyle: 'italic', fontSize: 12.5, color: meta.color || 'var(--acc, #E65F2B)', fontWeight: 700, textTransform: 'capitalize', letterSpacing: '0.04em' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '2px 8px', borderRadius: 99,
+                background: 'rgba(230, 95, 43, 0.12)', border: '1px solid rgba(230, 95, 43, 0.28)',
+                fontSize: 10, fontWeight: 800, color: 'var(--acc, #E65F2B)',
+                textTransform: 'capitalize', letterSpacing: '0.02em',
+              }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--acc, #E65F2B)' }} />
                 {activeRole?.replace('_', ' ')}
               </div>
             </div>
           </div>
+
           <button
             onClick={handleLogout}
             style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
-              borderRadius: 'var(--r)', background: 'transparent', border: 'none', cursor: 'pointer',
-              color: 'var(--acc)', fontSize: 12, fontWeight: 600, transition: 'all 0.12s',
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '9px 12px',
+              borderRadius: 10, background: 'rgba(230, 95, 43, 0.06)', border: '1px solid rgba(230, 95, 43, 0.16)', cursor: 'pointer',
+              color: 'var(--acc, #E65F2B)', fontSize: 12, fontWeight: 700, transition: 'all 0.2s ease',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(230,95,43,0.08)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(230, 95, 43, 0.14)';
+              e.currentTarget.style.borderColor = 'rgba(230, 95, 43, 0.35)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(230, 95, 43, 0.06)';
+              e.currentTarget.style.borderColor = 'rgba(230, 95, 43, 0.15)';
+              e.currentTarget.style.transform = 'translateY(0px)';
+            }}
           >
-            <LogOut size={13} /><span>Sign Out</span>
+            <LogOut size={14} /><span>Sign Out</span>
           </button>
         </div>
       </nav>
