@@ -400,90 +400,14 @@ export default function Register() {
         {/* Background Hero Image: Real Mountain & Orange Horizon Glow Visual */}
         <div className="reg-bg-image-wrap">
           <img
-            src="/assets/login_kite_hero.jpg"
-            alt="Mountains & Kite Visual"
+            src="/login_backdrop.png"
+            alt="CreatoKite Hero Backdrop"
             className="reg-bg-hero-img"
-            onError={e => {
-              e.currentTarget.src = '/login_backdrop.png';
-            }}
           />
           <div className="reg-hero-overlay" />
         </div>
 
-        {/* Floating Stars, Orbital Arcs & REALISTIC 3D DIAMOND KITE */}
-        <div className="reg-vector-bg-wrap">
-          <svg className="reg-vector-svg" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <linearGradient id="realKiteTop" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FF7034" />
-                <stop offset="100%" stopColor="#E65F2B" />
-              </linearGradient>
-              <linearGradient id="realKiteRight" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FF8F5B" />
-                <stop offset="100%" stopColor="#F06A37" />
-              </linearGradient>
-              <linearGradient id="realKiteBottom" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#D94E1F" />
-                <stop offset="100%" stopColor="#B33B10" />
-              </linearGradient>
-              <radialGradient id="realKiteGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#FF7A3D" stopOpacity="0.5" />
-                <stop offset="100%" stopColor="#FF7A3D" stopOpacity="0" />
-              </radialGradient>
-              <filter id="realGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="6" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
 
-            {/* Stars */}
-            <circle cx="120" cy="90" r="1.5" fill="#FFF" opacity="0.7" />
-            <circle cx="340" cy="70" r="2" fill="#FFF" opacity="0.8" />
-            <circle cx="480" cy="140" r="1.5" fill="#FFF" opacity="0.6" />
-            <circle cx="210" cy="180" r="1" fill="#FFF" opacity="0.5" />
-            <circle cx="420" cy="220" r="1.2" fill="#FFF" opacity="0.5" />
-            <circle cx="150" cy="270" r="1" fill="#FFF" opacity="0.4" />
-
-            {/* Faint Orbital Arcs */}
-            <ellipse cx="150" cy="370" rx="200" ry="160" fill="none" stroke="rgba(230, 95, 43, 0.2)" strokeWidth="1" strokeDasharray="6 6" transform="rotate(-15 150 370)" />
-            <ellipse cx="150" cy="370" rx="270" ry="210" fill="none" stroke="rgba(230, 95, 43, 0.12)" strokeWidth="1" transform="rotate(-15 150 370)" />
-
-            {/* ── FLOATING 3D KITE (POSITIONED LOWER & FURTHER LEFT) ── */}
-            <g transform="translate(-150, 135) scale(0.52)" className="reg-floating-kite">
-              {/* Radial Back Glow */}
-              <circle cx="300" cy="250" r="120" fill="url(#realKiteGlow)" />
-
-              {/* Diamond Quadrant Facets with 3D Shading */}
-              <polygon points="300,140 230,240 300,240" fill="url(#realKiteTop)" />
-              <polygon points="300,140 370,240 300,240" fill="url(#realKiteRight)" />
-              <polygon points="300,240 230,240 300,360" fill="url(#realKiteBottom)" />
-              <polygon points="300,240 370,240 300,360" fill="url(#realKiteTop)" opacity="0.88" />
-
-              {/* Outer Edge Glow Outline */}
-              <polygon points="300,140 370,240 300,360 230,240" fill="none" stroke="#FF8F5B" strokeWidth="2.5" filter="url(#realGlow)" />
-
-              {/* Bamboo Crossbars & Structural Spars */}
-              <line x1="300" y1="135" x2="300" y2="365" stroke="#FFE3D6" strokeWidth="2.5" opacity="0.95" />
-              <path d="M222,240 Q300,222 378,240" fill="none" stroke="#FFE3D6" strokeWidth="2.5" opacity="0.95" />
-
-              {/* Corner Reinforcement Patches */}
-              <polygon points="300,140 292,152 308,152" fill="#FFE3D6" opacity="0.85" />
-              <polygon points="230,240 243,234 243,246" fill="#FFE3D6" opacity="0.85" />
-              <polygon points="370,240 357,234 357,246" fill="#FFE3D6" opacity="0.85" />
-
-              {/* Long Sweeping Tail String (Flows gently down towards center horizon) */}
-              <path d="M300,360 Q280,450 310,540 T290,680" fill="none" stroke="#FF7A3D" strokeWidth="3" filter="url(#realGlow)" />
-              <path d="M300,360 Q292,460 304,550 T296,690" fill="none" stroke="#FFA375" strokeWidth="1.5" opacity="0.8" />
-
-              {/* Ribbon Bows on Tail String */}
-              <path d="M285,465 Q290,460 295,465 Q290,470 285,465" fill="#FF7A3D" />
-              <path d="M305,560 Q310,555 315,560 Q310,565 305,560" fill="#FF7A3D" />
-            </g>
-          </svg>
-        </div>
 
         {/* Top Brand Logo */}
         <div className="login-brand-header" onClick={() => navigate('/')}>
@@ -814,20 +738,23 @@ export default function Register() {
           inset: 0;
           z-index: 1;
           pointer-events: none;
+          overflow: hidden;
+          background: #050608;
         }
 
         .reg-bg-hero-img {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          object-position: center bottom;
+          object-position: center 60%;
           filter: brightness(0.92) contrast(1.05);
         }
 
         .reg-hero-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(180deg, #0C0D11 0%, #0C0D11 42%, rgba(12, 13, 17, 0.2) 65%, rgba(12, 13, 17, 0.85) 100%);
+          background: linear-gradient(180deg, rgba(12, 13, 17, 0.4) 0%, rgba(12, 13, 17, 0.1) 45%, rgba(12, 13, 17, 0.6) 100%);
+          pointer-events: none;
         }
 
         .reg-vector-bg-wrap {
@@ -899,7 +826,8 @@ export default function Register() {
 
         .login-hero-copy {
           max-width: 380px;
-          margin: auto 0 10px 0;
+          margin-top: auto;
+          margin-bottom: 75px;
           position: relative;
           z-index: 5;
         }

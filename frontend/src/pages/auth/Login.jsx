@@ -104,115 +104,18 @@ export default function Login() {
         canonical="/login"
       />
 
-      {/* ── LEFT PANEL (DARK HERO WITH PURE VECTOR ARTWORK) ── */}
+      {/* ── LEFT PANEL (DARK HERO WITH REAL MOUNTAINS & REALISTIC 3D KITE) ── */}
       <div className="login-left-panel">
-        {/* Ambient Glow Orbs */}
-        <div className="login-ambient-orb orb-center" />
-        <div className="login-ambient-orb orb-bottom" />
-
-        {/* Vector SVG Artwork (Glowing Kite + Mountain Landscape) */}
-        <div className="login-vector-art-container">
-          <svg
-            className="login-vector-svg"
-            viewBox="0 0 600 800"
-            preserveAspectRatio="xMidYMid slice"
-          >
-            <defs>
-              <filter id="orangeGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="8" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-                <feGaussianBlur stdDeviation="15" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-
-              <linearGradient id="kiteGradientLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FF7A3D" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#D94E1F" stopOpacity="0.95" />
-              </linearGradient>
-              <linearGradient id="kiteGradientRight" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FFA375" stopOpacity="0.85" />
-                <stop offset="100%" stopColor="#E65F2B" stopOpacity="0.9" />
-              </linearGradient>
-              <linearGradient id="kiteGradientBottom" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#C2410C" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="#7C2D12" stopOpacity="0.95" />
-              </linearGradient>
-
-              <linearGradient id="mountainBack" x1="50%" y1="0%" x2="50%" y2="100%">
-                <stop offset="0%" stopColor="#2D1B17" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#0D0E12" stopOpacity="1" />
-              </linearGradient>
-              <linearGradient id="mountainFront" x1="50%" y1="0%" x2="50%" y2="100%">
-                <stop offset="0%" stopColor="#1B1515" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="#08090C" stopOpacity="1" />
-              </linearGradient>
-
-              <linearGradient id="lightBeam" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#FF7A3D" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#FF7A3D" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-
-            {/* Background Dust / Star Particles */}
-            <circle cx="120" cy="140" r="1.5" fill="#FFF" opacity="0.4" />
-            <circle cx="340" cy="90" r="2" fill="#FFF" opacity="0.6" />
-            <circle cx="480" cy="180" r="1" fill="#FFF" opacity="0.3" />
-            <circle cx="210" cy="260" r="1.5" fill="#FFF" opacity="0.5" />
-            <circle cx="510" cy="310" r="2" fill="#FFF" opacity="0.4" />
-            <circle cx="90" cy="390" r="1" fill="#FFF" opacity="0.3" />
-
-            {/* Orbital Rings */}
-            <ellipse cx="320" cy="380" rx="180" ry="60" fill="none" stroke="rgba(255, 122, 61, 0.1)" strokeWidth="1" strokeDasharray="4,6" transform="rotate(-15 320 380)" />
-            <ellipse cx="320" cy="380" rx="260" ry="90" fill="none" stroke="rgba(255, 122, 61, 0.05)" strokeWidth="1" transform="rotate(-15 320 380)" />
-
-            {/* Ambient Light Beam from Horizon */}
-            <polygon points="100,750 320,380 540,750" fill="url(#lightBeam)" />
-
-            {/* Ambient Horizon Glow Circle */}
-            <circle cx="320" cy="480" r="140" fill="rgba(230, 95, 43, 0.12)" filter="url(#softGlow)" />
-
-            {/* ── VECTOR KITE (GLOWING GEOMETRIC 3D KITE) ── */}
-            <g className="login-floating-kite" transform="translate(30, 0)">
-              {/* Outer Glow Outline */}
-              <polygon points="300,260 380,360 300,440 220,360" fill="none" stroke="#FF7A3D" strokeWidth="3" filter="url(#orangeGlow)" opacity="0.8" />
-
-              {/* Kite Facets */}
-              <polygon points="300,260 220,360 300,360" fill="url(#kiteGradientLeft)" />
-              <polygon points="300,260 380,360 300,360" fill="url(#kiteGradientRight)" />
-              <polygon points="300,360 220,360 300,440" fill="url(#kiteGradientBottom)" opacity="0.9" />
-              <polygon points="300,360 380,360 300,440" fill="url(#kiteGradientLeft)" opacity="0.85" />
-
-              {/* Inner Structure / Spar Lines */}
-              <line x1="300" y1="260" x2="300" y2="440" stroke="#FFD8C7" strokeWidth="2" opacity="0.9" />
-              <line x1="220" y1="360" x2="380" y2="360" stroke="#FFD8C7" strokeWidth="2" opacity="0.9" />
-              <line x1="300" y1="260" x2="220" y2="360" stroke="#FFF" strokeWidth="1" opacity="0.6" />
-              <line x1="300" y1="260" x2="380" y2="360" stroke="#FFF" strokeWidth="1" opacity="0.6" />
-
-              {/* Kite Tail Ribbons */}
-              <path d="M300,440 Q280,500 320,560 T270,640" fill="none" stroke="#FF7A3D" strokeWidth="2.5" filter="url(#orangeGlow)" />
-              <path d="M300,440 Q330,510 290,570 T340,650" fill="none" stroke="#FFA375" strokeWidth="1.5" opacity="0.8" />
-
-              {/* Floating Sparkle Nodes */}
-              <circle cx="300" cy="260" r="3" fill="#FFF" filter="url(#orangeGlow)" />
-              <circle cx="220" cy="360" r="2.5" fill="#FFD8C7" />
-              <circle cx="380" cy="360" r="2.5" fill="#FFD8C7" />
-              <circle cx="300" cy="440" r="3" fill="#FFF" filter="url(#orangeGlow)" />
-            </g>
-
-            {/* ── STYLIZED MOUNTAIN RIDGE SILHOUETTES ── */}
-            <path d="M-50,620 L60,540 L170,580 L290,490 L400,560 L520,480 L650,570 L700,620 L700,850 L-50,850 Z" fill="url(#mountainBack)" stroke="rgba(255, 122, 61, 0.25)" strokeWidth="1" />
-            <path d="M-50,680 L90,590 L210,640 L340,530 L450,610 L580,520 L680,600 L700,680 L700,850 L-50,850 Z" fill="url(#mountainFront)" stroke="rgba(255, 122, 61, 0.4)" strokeWidth="1.5" />
-          </svg>
+        {/* Background Hero Image */}
+        <div className="reg-bg-image-wrap">
+          <img
+            src="/login_backdrop.png"
+            alt="CreatoKite Hero Backdrop"
+            className="reg-bg-hero-img"
+          />
+          <div className="reg-hero-overlay" />
         </div>
+
 
         {/* Top Brand Logo */}
         <div className="login-brand-header" onClick={() => navigate('/')}>
@@ -539,6 +442,30 @@ export default function Login() {
           box-sizing: border-box;
         }
 
+        .reg-bg-image-wrap {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          pointer-events: none;
+          overflow: hidden;
+          background: #050608;
+        }
+
+        .reg-bg-hero-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center 60%;
+          filter: brightness(0.92) contrast(1.05);
+        }
+
+        .reg-hero-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, rgba(12, 13, 17, 0.4) 0%, rgba(12, 13, 17, 0.1) 45%, rgba(12, 13, 17, 0.6) 100%);
+          pointer-events: none;
+        }
+
         .login-ambient-orb {
           position: absolute;
           border-radius: 50%;
@@ -637,7 +564,8 @@ export default function Login() {
 
         .login-hero-copy {
           max-width: 380px;
-          margin: auto 0;
+          margin-top: auto;
+          margin-bottom: 75px;
           position: relative;
           z-index: 5;
           padding: 10px 0;
@@ -736,7 +664,7 @@ export default function Login() {
           top: 0;
           right: -1px;
           bottom: 0;
-          width: 70px;
+          width: 130px;
           pointer-events: none;
           z-index: 10;
         }

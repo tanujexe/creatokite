@@ -405,7 +405,7 @@ router.post('/login', [
     if (!user || !(await user.comparePassword(password)))
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     if (user.isBanned)
-      return res.status(403).json({ success: false, message: `Account suspended: ${user.banReason}` });
+      return res.status(403).json({ success: false, message: `Account suspended${user.banReason ? ': ' + user.banReason : '. Please contact support.'}` });
 
     const now = new Date(), last = user.lastLoginDate ? new Date(user.lastLoginDate) : null;
     if (last) {
