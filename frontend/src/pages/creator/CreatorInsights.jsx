@@ -73,45 +73,32 @@ const formatStatCurrency = (val = 0) => {
 
 const CustomStatCard = ({ label, value, icon: Icon, color }) => (
   <div style={{
-    background: 'var(--glass-bg)',
-    backdropFilter: 'var(--glass-blur)',
-    WebkitBackdropFilter: 'var(--glass-blur)',
-    border: '1px solid var(--glass-border)',
+    background: 'var(--s1, #161311)',
+    border: '1px solid var(--border)',
     borderRadius: 16,
-    padding: '20px 20px 18px',
-    boxShadow: 'var(--glass-shadow)',
+    padding: '14px 16px',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
     display: 'flex',
     flexDirection: 'column',
-    gap: 10,
+    justifyContent: 'space-between',
+    gap: 8,
     position: 'relative',
     overflow: 'hidden',
-    transition: 'transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.24s ease, box-shadow 0.24s ease',
-  }}
-  onMouseEnter={e => {
-    e.currentTarget.style.transform = 'translateY(-2px)';
-    e.currentTarget.style.borderColor = `${color}40`;
-    e.currentTarget.style.boxShadow = `0 12px 30px ${color}10, var(--glass-shadow)`;
-  }}
-  onMouseLeave={e => {
-    e.currentTarget.style.transform = 'none';
-    e.currentTarget.style.borderColor = 'var(--glass-border)';
-    e.currentTarget.style.boxShadow = 'var(--glass-shadow)';
-  }}
-  >
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <span style={{ fontSize: 12, color: 'var(--t2)', fontWeight: 600, letterSpacing: 0.3 }}>{label}</span>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Icon size={16} color={color} />
+    transition: 'transform 0.24s ease, border-color 0.24s ease',
+  }} className="hover-lift">
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+      <span style={{ fontSize: 11.5, color: 'var(--t2)', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+      <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}18`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon size={15} color={color} />
       </div>
     </div>
     <div style={{
       fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif",
-      fontSize: 26,
+      fontSize: 22,
       fontWeight: 800,
       color: 'var(--t1)',
-      letterSpacing: '-0.03em',
+      letterSpacing: '-0.02em',
       lineHeight: 1.1,
-      fontFeatureSettings: '"tnum" on, "lnum" on',
     }}>
       {value}
     </div>
@@ -121,38 +108,86 @@ const CustomStatCard = ({ label, value, icon: Icon, color }) => (
 export default function CreatorAnalytics() {
   const { user } = useAuth();
   const nav = useNavigate();
-  const [data, setData]     = useState(null);
+  const [data, setData]       = useState(null);
   const [casData, setCasData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
-  useEffect(() => {
+  const fetchAnalytics = () => {
     Promise.all([
-      analyticsAPI.creator(),
-      user?.socialAnalyzed ? analyticsAPI.creatorCAS() : Promise.resolve(null),
+      analyticsAPI.creator().catch(() => null),
+      user?.socialAnalyzed ? analyticsAPI.creatorCAS().catch(() => null) : Promise.resolve(null),
     ]).then(([d, cas]) => {
-      setData(d);
+      if (d) setData(d);
       if (cas) setCasData(cas);
     }).catch(()=>{}).finally(()=>setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+    const interval = setInterval(fetchAnalytics, 4000);
+    return () => clearInterval(interval);
   }, [user?.socialAnalyzed]);
 
-  if (loading) return <PageLoader />;
+  if (loading && !data) return <PageLoader />;
   const s = data?.stats || {};
   const trend = data?.trend || [];
 
   const radarData = casData ? SCORE_META.map(m=>({ subject:m.label, score:casData.casBreakdown?.[m.key]||0 })) : [];
 
+  const handleSyncSocial = async () => {
+    setSyncing(true);
+    try {
+      const BASE = import.meta.env.VITE_API_URL || '/api';
+      const res = await fetch(`${BASE}/analytics/creator/connect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Social metrics re-synced successfully!');
+        window.location.reload();
+      } else {
+        alert(data.message || 'Sync failed.');
+      }
+    } catch (e) {
+      alert('Error syncing social data: ' + e.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <CreatorShell style={{ display:'flex', flexDirection:'column', gap:24 }}>
-      <div style={{ marginBottom: 4 }}>
-        <h2 style={{ fontFamily:'var(--fh)', fontWeight:800, fontSize:22, letterSpacing: '-0.02em', color: 'var(--t1)', marginBottom:4 }}>My Analytics</h2>
-        <p style={{ color:'var(--t2)', fontSize:13, fontWeight: 500 }}>Your campaign performance and Creator Automation Score.</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 4 }}>
+        <div>
+          <h2 style={{ fontFamily:'var(--fh)', fontWeight:800, fontSize:22, letterSpacing: '-0.02em', color: 'var(--t1)', marginBottom:4 }}>My Analytics</h2>
+          <p style={{ color:'var(--t2)', fontSize:13, fontWeight: 500 }}>Your campaign performance and Creator Automation Score.</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleSyncSocial}
+          disabled={syncing}
+          style={{
+            padding: '8px 16px', background: 'var(--acc, #E65F2B)', color: '#fff',
+            border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700,
+            cursor: syncing ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6
+          }}
+        >
+          <Zap size={14} className={syncing ? 'spin' : ''} />
+          {syncing ? 'Syncing Profile...' : 'Sync Social Followers & Stats'}
+        </button>
       </div>
 
-      <div className="grid-4">
-        <CustomStatCard label="Total Campaigns" value={s.total||0}      icon={Target}    color="var(--p2)"  />
-        <CustomStatCard label="Completed"       value={s.completed||0}  icon={Star}      color="var(--acc2)"/>
-        <CustomStatCard label="Total Earned"    value={formatStatCurrency(s.earned)} icon={Wallet} color="var(--gold)"/>
-        <CustomStatCard label="Success Rate"    value={`${s.successRate||100}%`} icon={TrendingUp} color="var(--acc)"/>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+        <CustomStatCard label="Total Campaigns" value={s.total||0}      icon={Target}    color="#F97316"  />
+        <CustomStatCard label="Completed"       value={s.completed||0}  icon={Star}      color="#E65F2B"/>
+        <CustomStatCard label="Total Earned"    value={formatStatCurrency(s.earned)} icon={Wallet} color="#10B981"/>
+        <CustomStatCard label="Success Rate"    value={`${s.successRate||100}%`} icon={TrendingUp} color="#8B5CF6"/>
       </div>
 
       {/* ── CAS SECTION ─────────────────────────────── */}

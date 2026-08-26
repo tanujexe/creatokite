@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ecosystemAPI } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
-import { PageLoader, Btn, Avatar, Input, Textarea } from '../../components/ui';
+import { PageLoader, Btn, Avatar, Input, Textarea, renderTextWithLinks } from '../../components/ui';
 import toast from 'react-hot-toast';
 import { MessageSquare, ThumbsUp, Send, Share2, Plus, Sparkles, Megaphone } from 'lucide-react';
 import CreatorShell from './CreatorShell';
@@ -251,9 +251,9 @@ export default function Community() {
 
                 {/* Content */}
                 <h3 style={{ fontSize:15, fontWeight:800, marginBottom:10, color:'var(--t1)', fontFamily: 'var(--fh)' }}>{decodeHTML(post.title)}</h3>
-                <p style={{ fontSize:12.5, color:'var(--t2)', lineHeight:1.6, whiteSpace:'pre-line', marginBottom:18, fontWeight: 500 }}>
-                  {decodeHTML(post.content)}
-                </p>
+                <div style={{ fontSize:12.5, color:'var(--t2)', lineHeight:1.6, whiteSpace:'pre-line', marginBottom:18, fontWeight: 500, wordBreak: 'break-word' }}>
+                  {renderTextWithLinks(decodeHTML(post.content))}
+                </div>
 
                 {/* Optional Poll Rendering */}
                 {post.pollOptions && post.pollOptions.length > 0 && (
@@ -363,7 +363,7 @@ export default function Community() {
                     <Avatar src={c.sender?.avatar} name={c.sender?.displayName} size={28} />
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:11, fontWeight:800, color: 'var(--t1)', fontFamily: 'var(--fh)' }}>{c.sender?.displayName}</div>
-                      <p style={{ fontSize:11, color:'var(--t2)', marginTop:4, wordBreak:'break-word', lineHeight: 1.4, fontWeight: 500 }}>{decodeHTML(c.text)}</p>
+                      <div style={{ fontSize:11, color:'var(--t2)', marginTop:4, wordBreak:'break-word', lineHeight: 1.4, fontWeight: 500 }}>{renderTextWithLinks(decodeHTML(c.text))}</div>
                     </div>
                   </div>
                 ))

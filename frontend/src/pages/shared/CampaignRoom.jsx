@@ -116,7 +116,14 @@ export default function CampaignRoom() {
           <Radio size={15} style={{color:'#fff'}}/>
         </div>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontWeight:700,fontSize:14,color:'var(--t1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{room.name}</div>
+          <div style={{fontWeight:700,fontSize:14,color:'var(--t1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:8}}>
+            <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{room.name}</span>
+            {room.campaign?.requiresAdsRights && (
+              <span style={{fontSize:9.5,fontWeight:700,background:'rgba(230,95,43,0.15)',color:'#E65F2B',border:'1px solid rgba(230,95,43,0.3)',padding:'2px 8px',borderRadius:99,flexShrink:0}}>
+                ⚡ Ad Rights Included
+              </span>
+            )}
+          </div>
           <div style={{fontSize:10,color:'var(--t3)'}}>{room.members?.length||0} members · {room.campaign?.workflowStatus?.replace(/_/g,' ')||'active'}</div>
         </div>
         {/* Tabs */}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ecosystemAPI } from '../../api';
-import { PageLoader, Btn, StatusBadge, Input, Textarea } from '../../components/ui';
+import { PageLoader, Btn, StatusBadge, Input, Textarea, renderTextWithLinks } from '../../components/ui';
 import toast from 'react-hot-toast';
 import { Target, Award, Play, AlertCircle, Calendar, LayoutGrid, RefreshCw, Trophy } from 'lucide-react';
 import CreatorShell from './CreatorShell';
@@ -79,7 +79,7 @@ function FormattedBulletDescription({ text, isCompact = false, onShowMore }) {
           margin: 0,
           marginBottom: bullets.length > 0 ? 4 : 0
         }}>
-          {intro}
+          {renderTextWithLinks(intro)}
         </p>
       )}
 
@@ -95,7 +95,7 @@ function FormattedBulletDescription({ text, isCompact = false, onShowMore }) {
                 marginTop: 2,
                 flexShrink: 0
               }}>•</span>
-              <span style={{ flex: 1, wordBreak: 'break-word' }}>{item}</span>
+              <span style={{ flex: 1, wordBreak: 'break-word' }}>{renderTextWithLinks(item)}</span>
             </div>
           ))}
         </div>
@@ -161,15 +161,15 @@ function FormattedBulletDescription({ text, isCompact = false, onShowMore }) {
 
 export default function Activities() {
   const [activities, setActivities] = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [filter, setFilter]          = useState('daily');
-  const [showModal, setShowModal]    = useState(false);
-  const [selectedAct, setSelectedAct]= useState(null);
-  const [detailAct, setDetailAct]    = useState(null);
-  
-  const [url, setUrl]                = useState('');
-  const [note, setNote]              = useState('');
-  const [submitting, setSubmitting]  = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('daily');
+  const [showModal, setShowModal] = useState(false);
+  const [selectedAct, setSelectedAct] = useState(null);
+  const [detailAct, setDetailAct] = useState(null);
+
+  const [url, setUrl] = useState('');
+  const [note, setNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (detailAct || showModal) {
@@ -184,7 +184,7 @@ export default function Activities() {
     setLoading(true);
     ecosystemAPI.getActivities()
       .then(d => setActivities(d.activities || []))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   };
 
@@ -211,7 +211,7 @@ export default function Activities() {
       toast.success('Activity submitted successfully for review!');
       setShowModal(false);
       fetchActivities(); // reload statuses
-    } catch(e) {
+    } catch (e) {
       toast.error(e.response?.data?.message || 'Submission failed');
     } finally {
       setSubmitting(false);
@@ -226,20 +226,20 @@ export default function Activities() {
   });
 
   return (
-    <CreatorShell style={{ display:'flex', flexDirection:'column', gap:24 }}>
+    <CreatorShell style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Header Banner */}
       <div style={{
-        background:'var(--glass-bg)',
-        backdropFilter:'var(--glass-blur)',
-        WebkitBackdropFilter:'var(--glass-blur)',
-        border:'1px solid var(--glass-border)',
-        borderRadius:20,
-        padding:'24px 28px',
-        display:'flex',
-        justifyContent:'space-between',
-        alignItems:'center',
-        flexWrap:'wrap',
-        gap:16,
+        background: 'var(--glass-bg)',
+        backdropFilter: 'var(--glass-blur)',
+        WebkitBackdropFilter: 'var(--glass-blur)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: 20,
+        padding: '24px 28px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 16,
         boxShadow: 'var(--glass-shadow)',
         position: 'relative',
         overflow: 'hidden'
@@ -257,28 +257,28 @@ export default function Activities() {
         }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:6 }}>
-            <h2 style={{ fontFamily:'var(--fh)', fontSize:30, fontWeight:800, letterSpacing: '-0.02em', color: 'var(--t1)' }}>Activity Hub</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+            <h2 style={{ fontFamily: 'var(--fh)', fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--t1)' }}>Activity Hub</h2>
             <span className="badge badge-purple" style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, fontFamily: 'var(--fh)' }}>GAMIFIED</span>
           </div>
-          <p style={{ color:'var(--t2)', fontSize:13, fontWeight: 500 }}>Complete daily tasks, learning quizzes, and monthly challenges to level up and earn Creator Coins!</p>
+          <p style={{ color: 'var(--t2)', fontSize: 13, fontWeight: 500 }}>Complete daily tasks, learning quizzes, and monthly challenges to level up and earn Creator Coins!</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="rs-chip-row" style={{ display:'flex', gap:8, overflowX:'auto', paddingBottom:6, borderBottom:'1px solid var(--border)', flexWrap: 'nowrap' }}>
+      <div className="rs-chip-row" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6, borderBottom: '1px solid var(--border)', flexWrap: 'nowrap' }}>
         {[
-          { key: 'daily',      label: 'Daily Activities',      Icon: LayoutGrid,  emoji: null },
-          { key: 'weekly',     label: 'Weekly Tasks',          Icon: RefreshCw,   emoji: null },
-          { key: 'monthly',    label: 'Monthly Championships', Icon: Trophy,      emoji: null },
-          { key: 'challenges', label: 'Special Challenges',    Icon: null,        emoji: '🔥' },
+          { key: 'daily', label: 'Daily Activities', Icon: LayoutGrid, emoji: null },
+          { key: 'weekly', label: 'Weekly Tasks', Icon: RefreshCw, emoji: null },
+          { key: 'monthly', label: 'Monthly Championships', Icon: Trophy, emoji: null },
+          { key: 'challenges', label: 'Special Challenges', Icon: null, emoji: '🔥' },
         ].map(({ key: k, label: l, Icon, emoji }) => (
           <button key={k} onClick={() => setFilter(k)}
             className={`chip${filter === k ? ' active' : ''}`}
             style={{
-              fontSize:12,
-              padding:'8px 16px',
-              borderRadius:10,
+              fontSize: 12,
+              padding: '8px 16px',
+              borderRadius: 10,
               background: filter === k ? 'var(--acc)' : 'var(--s1)',
               color: filter === k ? '#FFFFFF' : 'var(--t2)',
               border: filter === k ? '1px solid var(--acc)' : '1px solid var(--border)',
@@ -290,11 +290,11 @@ export default function Activities() {
               alignItems: 'center',
               gap: 6,
             }}
-            onMouseEnter={e => { if(filter !== k) e.currentTarget.style.background = 'rgba(255,107,87,0.08)'; }}
-            onMouseLeave={e => { if(filter !== k) e.currentTarget.style.background = 'var(--s1)'; }}
+            onMouseEnter={e => { if (filter !== k) e.currentTarget.style.background = 'rgba(255,107,87,0.08)'; }}
+            onMouseLeave={e => { if (filter !== k) e.currentTarget.style.background = 'var(--s1)'; }}
           >
             {emoji
-              ? <span style={{ fontSize:14 }}>{emoji}</span>
+              ? <span style={{ fontSize: 14 }}>{emoji}</span>
               : <Icon size={13} />
             }
             {l}
@@ -304,12 +304,12 @@ export default function Activities() {
 
       {/* Activities Grid */}
       {filtered.length === 0 ? (
-        <div className="card" style={{ padding:40, textAlign:'center', color:'var(--t3)', borderRadius: 20 }}>
-          <AlertCircle size={28} style={{ margin:'0 auto 12px', opacity:0.6 }} />
+        <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--t3)', borderRadius: 20 }}>
+          <AlertCircle size={28} style={{ margin: '0 auto 12px', opacity: 0.6 }} />
           <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--t2)' }}>No activities active in this category currently. Check back later!</div>
         </div>
       ) : (
-        <div className="grid-2" style={{ gap:20 }}>
+        <div className="grid-2" style={{ gap: 20 }}>
           {filtered.map(act => (
             <div
               key={act._id}
@@ -321,9 +321,9 @@ export default function Activities() {
                 borderRadius: 16,
                 padding: 24,
                 boxShadow: 'var(--glass-shadow)',
-                display:'flex',
-                flexDirection:'column',
-                justifyContent:'space-between',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
                 transition: 'transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s ease',
               }}
               onMouseEnter={e => {
@@ -336,9 +336,9 @@ export default function Activities() {
               }}
             >
               <div>
-                <div className="flex-between" style={{ marginBottom:12 }}>
+                <div className="flex-between" style={{ marginBottom: 12 }}>
                   <span style={{
-                    textTransform:'uppercase', fontSize:10, fontWeight: 700,
+                    textTransform: 'uppercase', fontSize: 10, fontWeight: 700,
                     padding: '3px 10px', borderRadius: 99,
                     background: 'rgba(230,95,43,0.1)', color: 'var(--acc)',
                     border: '1px solid rgba(230,95,43,0.2)',
@@ -357,11 +357,11 @@ export default function Activities() {
                 </div>
                 <h3
                   onClick={() => setDetailAct(act)}
-                  style={{ fontSize:16, fontWeight:800, marginBottom:8, color:'var(--t1)', fontFamily: 'var(--fh)', lineHeight: 1.3, cursor:'pointer' }}
+                  style={{ fontSize: 16, fontWeight: 800, marginBottom: 8, color: 'var(--t1)', fontFamily: 'var(--fh)', lineHeight: 1.3, cursor: 'pointer' }}
                 >
                   {act.title}
                 </h3>
-                
+
                 {/* Formatted description with bullet points */}
                 <FormattedBulletDescription
                   text={act.description}
@@ -395,12 +395,12 @@ export default function Activities() {
                 )}
               </div>
 
-              <div style={{ borderTop:'1px solid var(--border)', paddingTop:14, display:'flex', justifyContent:'space-between', alignItems:'center', marginTop: 12 }}>
-                <div style={{ display:'flex', gap:10 }}>
-                  <div style={{ fontSize:11, fontWeight:800, color:'var(--t1)', background: 'rgba(74,62,61,0.06)', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 4 }}>⚡ {act.xpReward} XP</div>
-                  <div style={{ fontSize:11, fontWeight:800, color:'var(--gold)', background: 'rgba(212,162,76,0.1)', border: '1px solid rgba(212,162,76,0.22)', padding: '4px 10px', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 4 }}>🪙 {act.coinReward} Coins</div>
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--t1)', background: 'rgba(74,62,61,0.06)', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 4 }}>⚡ {act.xpReward} XP</div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--gold)', background: 'rgba(212,162,76,0.1)', border: '1px solid rgba(212,162,76,0.22)', padding: '4px 10px', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 4 }}>🪙 {act.coinReward} Coins</div>
                 </div>
-                
+
                 {act.status === 'approved' ? (
                   <button disabled style={{ background: 'transparent', border: 'none', color: '#16a34a', fontWeight: 700, fontSize: 12 }}>✓ Completed</button>
                 ) : act.status === 'pending' ? (
@@ -419,38 +419,38 @@ export default function Activities() {
       {/* ── FULL ACTIVITY DETAIL POPUP MODAL ────────────────── */}
       {detailAct && createPortal(
         <div style={{
-          position:'fixed', inset:0, background:'rgba(0,0,0,0.65)',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          zIndex:99999, padding:16, backdropFilter:'blur(8px)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 99999, padding: 16, backdropFilter: 'blur(8px)',
           overflowY: 'auto'
         }} onClick={() => setDetailAct(null)}>
           <div
             className="glass-modal"
             style={{
-              width:'100%', maxWidth:540, animation:'fadeUp 0.18s ease-out',
+              width: '100%', maxWidth: 540, animation: 'fadeUp 0.18s ease-out',
               padding: 28, borderRadius: 24, background: 'var(--s1)',
               border: '1px solid var(--border)', boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
               maxHeight: '90vh', overflowY: 'auto', margin: 'auto'
             }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex-between" style={{ marginBottom:16, borderBottom: '1px solid var(--border)', paddingBottom: 14 }}>
+            <div className="flex-between" style={{ marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 14 }}>
               <div>
                 <span style={{
-                  textTransform:'uppercase', fontSize:10, fontWeight: 700,
+                  textTransform: 'uppercase', fontSize: 10, fontWeight: 700,
                   padding: '3px 10px', borderRadius: 99,
                   background: 'rgba(230,95,43,0.1)', color: 'var(--acc)',
                   border: '1px solid rgba(230,95,43,0.2)', letterSpacing: '0.04em'
                 }}>{detailAct.type}</span>
-                <h3 style={{ fontSize:20, fontWeight:800, fontFamily: 'var(--fh)', color: 'var(--t1)', marginTop: 8 }}>{detailAct.title}</h3>
+                <h3 style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--fh)', color: 'var(--t1)', marginTop: 8 }}>{detailAct.title}</h3>
               </div>
-              <button onClick={() => setDetailAct(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--t3)', fontSize:24, padding: 0 }}>×</button>
+              <button onClick={() => setDetailAct(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', fontSize: 24, padding: 0 }}>×</button>
             </div>
 
             {/* Rewards Pill */}
-            <div style={{ display:'flex', gap:10, marginBottom: 20 }}>
-              <div style={{ fontSize:12, fontWeight:800, color:'var(--t1)', background: 'rgba(74,62,61,0.06)', border: '1px solid var(--border)', padding: '5px 12px', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 5 }}>⚡ {detailAct.xpReward} XP</div>
-              <div style={{ fontSize:12, fontWeight:800, color:'var(--gold)', background: 'rgba(212,162,76,0.1)', border: '1px solid rgba(212,162,76,0.22)', padding: '5px 12px', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 5 }}>🪙 {detailAct.coinReward} Coins</div>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--t1)', background: 'rgba(74,62,61,0.06)', border: '1px solid var(--border)', padding: '5px 12px', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 5 }}>⚡ {detailAct.xpReward} XP</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--gold)', background: 'rgba(212,162,76,0.1)', border: '1px solid rgba(212,162,76,0.22)', padding: '5px 12px', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 5 }}>🪙 {detailAct.coinReward} Coins</div>
             </div>
 
             {/* Formatted Full Description */}
@@ -461,7 +461,7 @@ export default function Activities() {
               </div>
             </div>
 
-            <div style={{ display:'flex', justifyContent:'flex-end', gap:10 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <Btn variant="secondary" onClick={() => setDetailAct(null)} style={{ height: 38, borderRadius: 10, padding: '0 18px' }}>Close</Btn>
               {detailAct.status !== 'approved' && detailAct.status !== 'pending' && (
                 <Btn variant="primary" onClick={() => { setDetailAct(null); openSubmitModal(detailAct); }} style={{ height: 38, borderRadius: 10, padding: '0 20px', fontWeight: 700 }}>
@@ -477,33 +477,33 @@ export default function Activities() {
       {/* Submission Modal */}
       {showModal && selectedAct && createPortal(
         <div style={{
-          position:'fixed', inset:0, background:'rgba(0,0,0,0.65)',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          zIndex:99999, padding:16, backdropFilter:'blur(6px)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 99999, padding: 16, backdropFilter: 'blur(6px)',
           overflowY: 'auto'
         }}>
-          <div className="glass-modal" style={{ width:'100%', maxWidth:480, animation:'fadeUp 0.15s', padding: 24, borderRadius: 20, margin: 'auto', background: 'var(--s1)' }}>
-            <div className="flex-between" style={{ marginBottom:16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
-              <h3 style={{ fontSize:16, fontWeight:800, fontFamily: 'var(--fh)' }}>Submit {selectedAct.title}</h3>
-              <button onClick={() => setShowModal(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--t3)', fontSize:22, padding: 0 }}>×</button>
+          <div className="glass-modal" style={{ width: '100%', maxWidth: 480, animation: 'fadeUp 0.15s', padding: 24, borderRadius: 20, margin: 'auto', background: 'var(--s1)' }}>
+            <div className="flex-between" style={{ marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--fh)' }}>Submit {selectedAct.title}</h3>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', fontSize: 22, padding: 0 }}>×</button>
             </div>
-            
-            <form onSubmit={submitActivity} style={{ display:'flex', flexDirection:'column', gap:16 }}>
-              <p style={{ fontSize:12, color:'var(--t2)', lineHeight:1.5, fontWeight: 500 }}>
+
+            <form onSubmit={submitActivity} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.5, fontWeight: 500 }}>
                 {decodeHTML(selectedAct.description)}
               </p>
-              
+
               <div className="form-group">
                 <label className="form-label" style={{ fontWeight: 600, fontSize: 12, marginBottom: 6, display: 'block' }}>Submission URL (e.g. Instagram Reel, Drive Link)</label>
                 <input className="form-input" placeholder="https://instagram.com/reel/..." value={url} onChange={e => setUrl(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--s1)', color: 'var(--t1)' }} />
               </div>
-                
+
               <div className="form-group">
                 <label className="form-label" style={{ fontWeight: 600, fontSize: 12, marginBottom: 6, display: 'block' }}>Submission Note / Answers</label>
-                <textarea className="form-input form-textarea" value={note} onChange={e => setNote(e.target.value)} placeholder="Explain your work, or answer the prompts here..." style={{ minHeight:90, width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--s1)', color: 'var(--t1)' }} />
+                <textarea className="form-input form-textarea" value={note} onChange={e => setNote(e.target.value)} placeholder="Explain your work, or answer the prompts here..." style={{ minHeight: 90, width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--s1)', color: 'var(--t1)' }} />
               </div>
-                
-              <div style={{ display:'flex', justifyContent:'flex-end', gap:10, marginTop:10 }}>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
                 <Btn variant="secondary" type="button" onClick={() => setShowModal(false)} style={{ height: 34, borderRadius: 8, padding: '0 16px' }}>Cancel</Btn>
                 <Btn variant="primary" type="submit" disabled={submitting} style={{ height: 34, borderRadius: 8, padding: '0 16px' }}>
                   {submitting ? 'Submitting...' : 'Submit Draft'}

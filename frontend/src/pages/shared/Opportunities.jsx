@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PageLoader, EmptyState, Spinner } from '../../components/ui';
+import { PageLoader, EmptyState, Spinner, renderTextWithLinks } from '../../components/ui';
 import { Search, ExternalLink, Calendar, Award, Briefcase, Sparkles } from 'lucide-react';
 import api from '../../api';
 
@@ -60,22 +60,14 @@ export default function Opportunities() {
       <div className="card" style={{
         background: 'linear-gradient(135deg, rgba(212,162,76,0.12), rgba(99,102,241,0.12))',
         border: '1px solid rgba(212,162,76,0.25)',
-        padding: '24px',
-        borderRadius: 'var(--r-lg)',
+        padding: '26px 30px',
+        borderRadius: 24,
       }}>
         <div style={{ maxWidth: 650 }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '4px 10px', borderRadius: 99,
-            background: 'rgba(212,162,76,0.2)', color: 'var(--gold)',
-            fontSize: 11, fontWeight: 700, marginBottom: 10
-          }}>
-            <Sparkles size={13} /> Open Applications & Form Links
-          </div>
-          <h1 style={{ fontFamily: 'var(--fc)', fontSize: 38, color: 'var(--t1)', marginBottom: 6, fontWeight: 'bold' }}>
+          <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 36, color: 'var(--t1)', marginBottom: 8, fontWeight: 900, letterSpacing: '-0.02em' }}>
             Creator Opportunities
           </h1>
-          <p style={{ fontFamily: 'var(--fb)', color: 'var(--t2)', fontSize: 13.5, lineHeight: 1.6, fontWeight: 500 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', color: 'var(--t2)', fontSize: 13.5, lineHeight: 1.6, fontWeight: 500, margin: 0 }}>
             Discover brand seeding applications, UGC creator roles, campus ambassador programs, and affiliate form links curated by CreatoKite.
           </p>
         </div>
@@ -166,13 +158,19 @@ export default function Opportunities() {
                     {opp.title}
                   </h3>
                   {opp.description && (
-                    <p style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {opp.description}
-                    </p>
+                    <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word' }}>
+                      {renderTextWithLinks(opp.description)}
+                    </div>
                   )}
                 </div>
 
-                <div style={{ paddingTop: 10, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11 }}>
+                <div style={{ paddingTop: 10, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11 }}>
+                  {opp.requiresAdsRights && (
+                    <div style={{ color: '#E65F2B', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(230, 95, 43, 0.1)', border: '1px solid rgba(230, 95, 43, 0.25)', padding: '3px 8px', borderRadius: 6, width: 'fit-content' }}>
+                      <Zap size={12} />
+                      <span>Ready for Usage Rights / Ad Rights</span>
+                    </div>
+                  )}
                   {opp.reward && (
                     <div style={{ color: 'var(--gold)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Award size={13} />

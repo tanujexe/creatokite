@@ -26,7 +26,7 @@ export default function CreateCampaign() {
     dealType: 'paid', barterProduct: '', barterValue: '', barterDelivery: 'Courier Shipping to Creator Address',
     budget: '', budgetType: 'fixed', totalSlots: '5', payoutPerCreator: '',
     minFollowers: '1000', minEngagement: '0', deadline: '',
-    isPremium: false,
+    isPremium: false, requiresAdsRights: false,
     kpiTargets: { reach: '', impressions: '', engagement: '', conversions: '' },
   });
 
@@ -80,11 +80,12 @@ export default function CreateCampaign() {
 
   const chip = active => ({
     display: 'inline-flex', alignItems: 'center', padding: '8px 16px', borderRadius: 100,
-    fontSize: 12.5, cursor: 'pointer', userSelect: 'none', transition: 'all .2s cubic-bezier(0.16, 1, 0.3, 1)',
-    background: active ? 'rgba(230, 95, 43, 0.14)' : 'var(--s2, rgba(255,255,255,0.03))',
-    border: active ? '1px solid rgba(230, 95, 43, 0.5)' : '1px solid var(--border)',
-    color: active ? 'var(--acc)' : 'var(--t2)', fontWeight: active ? 650 : 450,
-    boxShadow: active ? '0 0 12px rgba(230, 95, 43, 0.1)' : 'none',
+    fontSize: 12.5, cursor: 'pointer', userSelect: 'none', transition: 'all .22s cubic-bezier(0.16, 1, 0.3, 1)',
+    background: active ? 'rgba(230, 95, 43, 0.18)' : 'var(--s2, rgba(255, 255, 255, 0.05))',
+    border: active ? '1.5px solid var(--acc, #E65F2B)' : '1px solid var(--border)',
+    color: active ? 'var(--acc, #E65F2B)' : 'var(--t1)',
+    fontWeight: active ? 800 : 600,
+    boxShadow: active ? '0 4px 14px rgba(230, 95, 43, 0.2)' : '0 1px 4px rgba(0,0,0,0.04)',
     transform: active ? 'scale(1.03)' : 'scale(1)',
     letterSpacing: '0.01em',
   });
@@ -304,6 +305,38 @@ export default function CreateCampaign() {
                 <Input label="Creator Slots" type="number" value={form.totalSlots} onChange={upd('totalSlots')} hint="How many creators to assign" />
               </div>
               <Textarea label="Content Guidelines" value={form.contentGuidelines} onChange={upd('contentGuidelines')} placeholder="Dos, don'ts, hashtags, tone, reference links…" style={{ minHeight: 90 }} />
+
+              {/* Usage Rights / Ads Rights Checkbox */}
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '12px 16px',
+                  background: form.requiresAdsRights ? 'rgba(230, 95, 43, 0.08)' : 'var(--s2, rgba(255, 255, 255, 0.03))',
+                  border: form.requiresAdsRights ? '1px solid rgba(230, 95, 43, 0.3)' : '1px solid var(--border)',
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  transition: 'all 0.2s ease',
+                  marginTop: 2,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.requiresAdsRights}
+                  onChange={e => setForm(p => ({ ...p, requiresAdsRights: e.target.checked }))}
+                  style={{ width: 17, height: 17, accentColor: '#E65F2B', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>
+                    ⚡ Ready for Usage Rights / Ad Rights (Whitelisting)
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--t2)', marginTop: 2 }}>
+                    Check if brand requires rights to run paid social ads or whitelisting on creator content
+                  </div>
+                </div>
+              </label>
             </div>
             <div className="card">
               <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'var(--t1)' }}>Tags</h3>
