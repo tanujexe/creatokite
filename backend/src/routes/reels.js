@@ -171,18 +171,68 @@ router.get('/:id', async (req, res) => {
 /* ── POST /api/reels/:id/refresh ───────────────────────────── */
 router.post('/:id/refresh', async (req, res) => {
   try {
-    const reel = await Reel.findOne({ _id: req.params.id, addedBy: req.user._id });
+    const filter = ['admin', 'superadmin'].includes(req.user.role) ? { _id: req.params.id } : { _id: req.params.id, addedBy: req.user._id };
+    const reel = await Reel.findOne(filter);
     if (!reel) return res.status(404).json({ success: false, message: 'Reel not found' });
 
-    reel.status      = 'queued';
-    reel.nextFetchAt = new Date();
+    reel.status = 'fetching';
+    reel.fetchAttempts += 1;
     await reel.save();
 
-    // Trigger refresh
-    const io = req.app.get('io');
-    refreshDueReels(io);
+    try {
+      const data = await scrapeReel(reel.shortcode);
+      
+      let velocity = 0;
+      if (reel.history.length > 0) {
+        const last = reel.history[reel.history.length - 1];
+        const hrs = (Date.now() - new Date(last.capturedAt).getTime()) / 3600000;
+        const gained = Math.max(0, data.views - last.views);
+        velocity = hrs > 0 ? Math.round(gained / hrs) : 0;
+      }
 
-    res.json({ success: true, message: 'Refresh triggered' });
+      reel.history.push({
+        views: data.views,
+        likes: data.likes,
+        comments: data.comments,
+        engagement: data.engagement,
+        capturedAt: new Date(),
+      });
+      if (reel.history.length > 500) reel.history.shift();
+
+      reel.views = data.views;
+      reel.likes = data.likes;
+      reel.comments = data.comments;
+      reel.engagement = data.engagement;
+      reel.velocity = velocity;
+      reel.dataSource = data.source;
+      reel.status = 'tracking';
+      reel.failReason = '';
+      reel.lastFetchedAt = new Date();
+      if (data.username && !reel.username) reel.username = data.username;
+      if (data.fullName && !reel.fullName) reel.fullName = data.fullName;
+      if (data.caption && !reel.caption) reel.caption = data.caption;
+      if (data.thumbnail && !reel.thumbnail) reel.thumbnail = data.thumbnail;
+      if (data.publishedAt && !reel.publishedAt) reel.publishedAt = data.publishedAt;
+
+      reel.scheduleNext();
+      await reel.save();
+
+      const io = req.app.get('io');
+      if (io) {
+        io.to(`user:${reel.addedBy}`).emit('reel:updated', {
+          _id: reel._id, views: reel.views, likes: reel.likes,
+          comments: reel.comments, engagement: reel.engagement,
+          velocity: reel.velocity, status: reel.status,
+        });
+      }
+
+      res.json({ success: true, message: 'Reel metrics refreshed successfully!', reel });
+    } catch (err) {
+      reel.status = 'failed';
+      reel.failReason = err.message;
+      await reel.save();
+      res.status(502).json({ success: false, message: `Scraping failed: ${err.message}`, reel });
+    }
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }

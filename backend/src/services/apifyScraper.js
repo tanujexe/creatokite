@@ -31,7 +31,7 @@ async function scrapeInstagramApify(username) {
     };
 
     const run = await client.actor('apify/instagram-profile-scraper').call(input, {
-      timeoutSecs: 60,
+      timeout: 60,
     });
 
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
@@ -146,7 +146,7 @@ async function scrapeReelApify(shortcode) {
     };
 
     const run = await client.actor('apify/instagram-reel-scraper').call(input, {
-      timeoutSecs: 45,
+      timeout: 45,
     });
 
     const { items } = await client.dataset(run.defaultDatasetId).listItems();

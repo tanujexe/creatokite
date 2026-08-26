@@ -17,12 +17,40 @@ const { scrapeInstagramApify } = require('./apifyScraper');
 
 // ─── Shared helpers ────────────────────────────────────────────────
 function extractUsername(input) {
-  if (!input) return null;
-  input = input.trim().replace(/\/$/, '');
-  const urlMatch   = input.match(/instagram\.com\/([A-Za-z0-9._]+)/);
-  if (urlMatch) return urlMatch[1];
-  const plainMatch = input.match(/^@?([A-Za-z0-9._]+)$/);
-  return plainMatch ? plainMatch[1] : null;
+  if (!input || typeof input !== 'string') return null;
+  let str = input.trim();
+  if (str.startsWith('@http')) str = str.substring(1);
+
+  // Strip query params, hash, and trailing slashes
+  str = str.split('?')[0].split('#')[0].replace(/\/+$/, '');
+
+  const invalidPaths = new Set(['p', 'reel', 'reels', 'stories', 'explore', 'direct', 'tv', 'accounts', 'api']);
+
+  // Match full URL pattern (e.g. https://www.instagram.com/username)
+  const urlMatch = str.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/([A-Za-z0-9._]+)/i);
+  if (urlMatch) {
+    const handle = urlMatch[1];
+    if (!invalidPaths.has(handle.toLowerCase())) {
+      return handle;
+    }
+  }
+
+  // Match plain handle pattern (e.g. @username or username)
+  const plainMatch = str.match(/^@?([A-Za-z0-9._]+)$/);
+  if (plainMatch) {
+    const handle = plainMatch[1];
+    if (!invalidPaths.has(handle.toLowerCase())) {
+      return handle;
+    }
+  }
+
+  // Fallback: extract alphanumeric sequence
+  const fallbackMatch = str.match(/([A-Za-z0-9._]{2,30})/);
+  if (fallbackMatch && !invalidPaths.has(fallbackMatch[1].toLowerCase())) {
+    return fallbackMatch[1];
+  }
+
+  return null;
 }
 
 // Realistic Chrome/Mac headers that Instagram accepts
@@ -632,8 +660,12 @@ function method4_estimate(username) {
 // MASTER FUNCTION — tries all methods in order
 // ══════════════════════════════════════════════════════════════════
 async function scrapeInstagram(input) {
-  const username = extractUsername(input);
-  if (!username) throw new Error('Invalid Instagram URL or username');
+  let username = extractUsername(input);
+  if (!username) {
+    console.warn(`[Instagram Scraper] Could not extract username from "${input}". Using raw fallback.`);
+    const cleanStr = (input || '').toString().trim().replace(/[^a-zA-Z0-9._]/g, '');
+    username = cleanStr || 'creator';
+  }
 
   // Try Apify cloud scraper first if API key is configured
   const apifyData = await scrapeInstagramApify(username);

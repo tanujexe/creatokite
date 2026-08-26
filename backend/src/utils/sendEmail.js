@@ -1,44 +1,83 @@
+const { Resend } = require('resend');
 const nodemailer = require('nodemailer');
 
-const emailUser = (process.env.EMAIL_USER || '').trim();
-const emailPass = (process.env.EMAIL_PASS || '').trim();
-
-const transporter = (emailUser && emailPass) ? nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: emailUser,
-    pass: emailPass
-  },
-  tls: {
-    rejectUnauthorized: false
+const getResendClient = () => {
+  const key = (process.env.RESEND_API_KEY || '').trim();
+  if (key) {
+    return new Resend(key);
   }
-}) : null;
+  return null;
+};
 
-const FROM   = `"CreatoKite" <${emailUser || 'creaotokite123@gmail.com'}>`;
+const getTransporter = () => {
+  const emailUser = (process.env.EMAIL_USER || '').trim();
+  const emailPass = (process.env.EMAIL_PASS || '').trim();
+  if (emailUser && emailPass) {
+    return nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: { user: emailUser, pass: emailPass },
+      tls: { rejectUnauthorized: false }
+    });
+  }
+  return null;
+};
+
 const CLIENT = process.env.CLIENT_URL || 'http://localhost:5173';
 
 const send = async (to, subject, html) => {
-  if (!transporter) {
-    console.log(`[Email SKIP] (Nodemailer credentials missing) ${subject} → ${to}`);
-    return false;
+  const resendClient = getResendClient();
+  const fromResend   = (process.env.RESEND_FROM_EMAIL || '').trim() || 'CreatoKite <onboarding@resend.dev>';
+  
+  // Option A: Send via Resend API
+  if (resendClient) {
+    try {
+      const response = await resendClient.emails.send({
+        from: fromResend,
+        to,
+        subject,
+        html,
+      });
+      if (response.error) {
+        console.error('❌ [Resend Error]:', response.error.message || response.error);
+      } else {
+        console.log(`✅ [Resend Email SENT] ${subject} → ${to} (ID: ${response.data?.id || response.id})`);
+        return true;
+      }
+    } catch (e) {
+      console.error('❌ [Resend Exception Error]:', e.message);
+    }
   }
-  try {
-    const info = await transporter.sendMail({
-      from: FROM,
-      to,
-      subject,
-      html
-    });
-    console.log(`[Email SENT] ${subject} → ${to} (MessageID: ${info.messageId})`);
-    return true;
-  } catch(e) {
-    console.error('[Email Error Failed to Send]', e.message);
-    return false;
-  }
-};
 
+  // Option B: Send via Nodemailer SMTP
+  const transporter = getTransporter();
+  const fromSmtp = `"CreatoKite" <${(process.env.EMAIL_USER || 'creaotokite123@gmail.com').trim()}>`;
+  if (transporter) {
+    try {
+      const info = await transporter.sendMail({
+        from: fromSmtp,
+        to,
+        subject,
+        html
+      });
+      console.log(`✅ [Nodemailer Email SENT] ${subject} → ${to} (MessageID: ${info.messageId})`);
+      return true;
+    } catch (e) {
+      console.error('❌ [Nodemailer Error]:', e.message);
+      return false;
+    }
+  }
+
+  // Option C: Log in local dev mode when no API keys are provided
+  console.log(`\n==================================================`);
+  console.log(`⚠️ [EMAIL LOG - LOCAL DEV MODE]`);
+  console.log(`Subject: ${subject}`);
+  console.log(`To: ${to}`);
+  console.log(`To enable live emails, set RESEND_API_KEY in backend/.env`);
+  console.log(`==================================================\n`);
+  return false;
+};
 
 const base = (content, title) => `
 <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -61,6 +100,21 @@ const btn  = (url, label) => `<div style="margin:24px 0;"><a href="${url}" style
 const pill = (label, color='#7C8B5A') => `<span style="background:${color}20;color:${color};border:1px solid ${color}40;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600;">${label}</span>`;
 
 /* ── Email functions ─────────────────────────────── */
+exports.sendVerificationMail = (to, name, token) => send(
+  to,
+  '✉️ Confirm Your Email Address — CreatoKite',
+  base(
+    `${h2(`Verify Your Email Address`)}
+     ${p(`Hi ${name || 'there'}, thank you for signing up for CreatoKite!`)}
+     ${p('Please click the button below to confirm your email address and activate full access to your campaign workspace.')}
+     ${btn(`${CLIENT}/verify-email?token=${token}`, 'Verify Email Address →')}
+     ${p('If the button above does not work, copy and paste the following link into your web browser:')}
+     <p style="color:#8892A4;font-size:12px;word-break:break-all;margin-top:4px;">${CLIENT}/verify-email?token=${token}</p>
+     ${p('This link will expire in 24 hours. If you did not create a CreatoKite account, please ignore this message.')}`,
+    'Verify Email'
+  )
+);
+
 exports.sendLoginMail = (to) => send(to,'Login Alert — CreatoKite', base(`${h2('New Login Detected')}${p('A new login to your CreatoKite account was detected. If this was you, no action is needed.')}${btn(CLIENT,'Go to Dashboard')}`, 'Login Alert'));
 
 exports.sendWelcomeMail = (to, name, role) => send(to,`Welcome to CreatoKite, ${name}!`, base(`${h2(`Welcome, ${name}! 🎉`)}${p(`You've joined CreatoKite as a ${role}. Your account is being set up.`)}${btn(`${CLIENT}/${role}/dashboard`,'Get Started')}`, 'Welcome'));
@@ -102,4 +156,3 @@ exports.sendFollowUpReminderMail = (to, name, subject, notes='') => send(to,`⏰
 exports.sendBroadcastMail = (to, title, body) => send(to,`[CreatoKite] ${title}`, base(`${h2(title)}${p(body)}${btn(CLIENT,'Open Platform')}`, title));
 
 exports.sendPendingNotificationsMail = (to, name, unreadCount) => send(to, `⚠️ Pending Notifications — CreatoKite`, base(`${h2('Pending Notifications')}${p(`Hi ${name}, you have ${unreadCount} unread notifications waiting for your attention on CreatoKite.`)}${btn(`${CLIENT}/creator/dashboard`, 'Go & Check Them Out')}`, 'Pending Notifications'));
-

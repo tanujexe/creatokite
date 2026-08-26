@@ -84,6 +84,7 @@ const comments = parseInt(
   } catch (e) {
     const s = e.response?.status;
     if (s === 401 || s === 403) console.log('[ReelScraper M1] ✗ Key invalid');
+    else if (s === 402) console.log('[ReelScraper M1] ✗ Out of credits / Payment required');
     else if (s === 429) console.log('[ReelScraper M1] ✗ Rate limit');
     else console.log('[ReelScraper M1] ✗', e.message);
     return null;
