@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MessageCircle, Pin, Trash2, Megaphone, Search, BarChart2, Users, RefreshCw, Send, Shield } from 'lucide-react';
 import { ecosystemAPI } from '../../api';
-import { Avatar, EmptyState, PageLoader, Modal } from '../../components/ui';
+import { Avatar, EmptyState, PageLoader, Modal, renderTextWithLinks } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -110,8 +110,8 @@ function PostCard({ post, onDelete, onPin, onAnnounce, onDeleteComment, isAdmin,
           <div style={{ fontSize:15, fontWeight:800, color:'var(--t1)', marginBottom:6, lineHeight:1.3 }}>
             {cleanText(post.title)}
           </div>
-          <div style={{ fontSize:13.5, color:'var(--t2)', lineHeight:1.6, whiteSpace:'pre-line' }}>
-            {cleanText(post.content)}
+          <div style={{ fontSize:13.5, color:'var(--t2)', lineHeight:1.6, whiteSpace:'pre-line', wordBreak: 'break-word' }}>
+            {renderTextWithLinks(cleanText(post.content))}
           </div>
         </div>
 
@@ -147,7 +147,7 @@ function PostCard({ post, onDelete, onPin, onAnnounce, onDeleteComment, isAdmin,
                     <Avatar src={comment.sender?.avatar} name={comment.sender?.displayName} size={26}/>
                     <div style={{ flex:1, background:'var(--s2)', borderRadius:10, padding:'8px 12px' }}>
                       <div style={{ fontSize:12, fontWeight:700, color:'var(--t1)', marginBottom:2 }}>{cleanText(comment.sender?.displayName)}</div>
-                      <div style={{ fontSize:12.5, color:'var(--t2)', lineHeight:1.5 }}>{cleanText(comment.text)}</div>
+                      <div style={{ fontSize:12.5, color:'var(--t2)', lineHeight:1.5, wordBreak: 'break-word' }}>{renderTextWithLinks(cleanText(comment.text))}</div>
                     </div>
                     <button onClick={() => onDeleteComment(comment._id, post._id)}
                       style={{ background:'none', border:'none', cursor:'pointer', color:'var(--rose)', padding:4, flexShrink:0 }} title="Delete comment">

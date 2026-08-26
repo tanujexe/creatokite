@@ -156,24 +156,7 @@ export default function BrandDashboard() {
         <div style={{ display: 'flex', gap: 10, zIndex: 1, flexWrap: 'nowrap', alignItems: 'center' }}>
           <button
             onClick={() => navigate('/brand/campaigns/create')}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px',
-              borderRadius: 12, background: 'var(--acc)', color: '#FFFFFF',
-              border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer',
-              whiteSpace: 'nowrap', flexShrink: 0,
-              boxShadow: '0 6px 20px rgba(230,95,43,0.35)',
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 10px 28px rgba(230,95,43,0.5)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(230,95,43,0.35)';
-            }}
-            onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.96)'; }}
-            onMouseUp={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            className="tactile-btn-new-campaign"
           >
             <Plus size={15} /> New Campaign
           </button>

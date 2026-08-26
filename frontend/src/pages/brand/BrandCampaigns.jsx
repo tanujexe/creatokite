@@ -49,9 +49,12 @@ export default function BrandCampaigns() {
             {campaigns.length} total campaigns submitted
           </p>
         </div>
-        <Btn variant="primary" onClick={() => nav('/brand/campaigns/create')} style={{ display: 'flex', alignItems: 'center', gap: 6, zIndex: 1 }}>
+        <button
+          onClick={() => nav('/brand/campaigns/create')}
+          className="tactile-btn-new-campaign"
+        >
           <Plus size={14} /> New Campaign
-        </Btn>
+        </button>
       </div>
 
       {/* Filter Chips */}
