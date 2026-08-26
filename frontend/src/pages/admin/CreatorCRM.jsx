@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Users2, Search, Calendar, Clock, Download } from 'lucide-react';
+import { Users2, Search, Calendar, Clock, Download, Instagram, ExternalLink, RefreshCw, Mail } from 'lucide-react';
 import { crmAPI, workspaceAPI } from '../../api';
-import { Avatar, Modal, EmptyState, PageLoader, TrustScore } from '../../components/ui';
+import { Avatar, Modal, EmptyState, PageLoader, TrustScore, getInstagramLink, getYouTubeLink, GmailIcon, InstagramIcon } from '../../components/ui';
 import toast from 'react-hot-toast';
 
 const CRM_STATUSES = [
@@ -21,6 +21,7 @@ export default function CreatorCRM() {
   const [filter, setFilter] = useState('');
   const [avFilter, setAvFilter] = useState('');
   const [nicheFilter, setNicheFilter] = useState('');
+  const [barterFilter, setBarterFilter] = useState('');
   const [selected, setSelected] = useState(null);
   const [notes, setNotes] = useState([]);
   const [noteText, setNoteText] = useState('');
@@ -37,13 +38,14 @@ export default function CreatorCRM() {
         status: filter || undefined,
         availability: avFilter || undefined,
         niche: nicheFilter || undefined,
+        isBarterReady: barterFilter || undefined,
         limit: 50
       });
       setCreators(d.creators || []); setTotal(d.total || 0);
     } catch (e) { } finally { setLoading(false); }
-  }, [search, filter, avFilter, nicheFilter]);
+  }, [search, filter, avFilter, nicheFilter, barterFilter]);
 
-  useEffect(() => { const t = setTimeout(load, search ? 400 : 0); return () => clearTimeout(t); }, [search, filter, avFilter, nicheFilter, load]);
+  useEffect(() => { const t = setTimeout(load, search ? 400 : 0); return () => clearTimeout(t); }, [search, filter, avFilter, nicheFilter, barterFilter, load]);
   useEffect(() => { workspaceAPI.team().then(d => setMembers(d.members || [])).catch(() => { }); }, []);
 
   const handleExportExcel = () => {
@@ -53,7 +55,36 @@ export default function CreatorCRM() {
     if (nicheFilter) params.append('niche', nicheFilter);
     if (filter) params.append('status', filter);
     if (avFilter) params.append('availabilityStatus', avFilter);
+    if (barterFilter) params.append('isBarterReady', barterFilter);
     window.open(`${BASE}/admin/creators/export-excel?${params.toString()}`, '_blank');
+  };
+
+  const [syncingSocial, setSyncingSocial] = useState(false);
+
+  const handleSyncCreatorSocial = async (creatorId) => {
+    setSyncingSocial(true);
+    try {
+      const BASE = import.meta.env.VITE_API_URL || '/api';
+      const res = await fetch(`${BASE}/admin/users/${creatorId}/sync-social`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSelected(data.user);
+        alert('Social profile metrics & follower data re-synced successfully!');
+        load();
+      } else {
+        alert(data.message || 'Sync failed.');
+      }
+    } catch (e) {
+      alert('Error syncing social data: ' + e.message);
+    } finally {
+      setSyncingSocial(false);
+    }
   };
 
   const openCreator = async (c) => {
@@ -134,9 +165,10 @@ export default function CreatorCRM() {
           <option value="" style={{ background: 'var(--s2)' }}>All Statuses</option>
           {CRM_STATUSES.map(s => <option key={s.key} value={s.key} style={{ background: 'var(--s2)' }}>{s.key.replace('_', ' ')}</option>)}
         </select>
-        <select value={avFilter} onChange={e => setAvFilter(e.target.value)} className="form-input" style={{ flex: '1 1 130px', minWidth: 120, maxWidth: 160, fontSize: 12, padding: '6px 10px', height: 36 }}>
-          <option value="" style={{ background: 'var(--s2)' }}>All Availability</option>
-          {AVAIL.map(a => <option key={a.key} value={a.key} style={{ background: 'var(--s2)' }}>{a.key}</option>)}
+        <select value={barterFilter} onChange={e => setBarterFilter(e.target.value)} className="form-input" style={{ flex: '1 1 130px', minWidth: 120, maxWidth: 160, fontSize: 12, padding: '6px 10px', height: 36 }}>
+          <option value="" style={{ background: 'var(--s2)' }}>All Barter Status</option>
+          <option value="true" style={{ background: 'var(--s2)' }}>🎁 Barter Ready (Yes)</option>
+          <option value="false" style={{ background: 'var(--s2)' }}>💼 Paid Only (No)</option>
         </select>
       </div>
 
@@ -151,7 +183,6 @@ export default function CreatorCRM() {
                     <th>Niche</th>
                     <th>Location</th>
                     <th>Followers</th>
-                    <th>Availability</th>
                     <th>CRM Status</th>
                     <th>Assigned To</th>
                     <th style={{ textAlign: 'right' }}>Action</th>
@@ -160,15 +191,45 @@ export default function CreatorCRM() {
                 <tbody>
                   {creators.map(c => {
                     const st = statusFor(c.crmStatus || 'registered');
-                    const av = availFor(c.availability || 'available');
+                    const igRaw = c.socialUrls?.instagram || c.platforms?.instagram?.profileUrl || c.platforms?.instagram?.username || c.instagramHandle || c.instagram;
+                    const igData = getInstagramLink(igRaw);
                     return (
                       <tr key={c._id} style={{ cursor: 'pointer' }} onClick={() => openCreator(c)}>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <Avatar src={c.avatar} name={c.displayName} size={32} />
+                            <Avatar src={c.avatar} name={c.displayName} size={34} />
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130 }}>{c.displayName}</div>
-                              <div style={{ fontSize: 10.5, color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130 }}>{c.email}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>
+                                  {c.displayName}
+                                </span>
+                                {igData && (
+                                  <a
+                                    href={igData.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={e => e.stopPropagation()}
+                                    title={`Open ${igData.handle} on Instagram`}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 3, textDecoration: 'none', color: '#e1306c', fontSize: 11, fontWeight: 700, flexShrink: 0 }}
+                                  >
+                                    <InstagramIcon size={13} />
+                                    <span style={{ fontSize: 10.5 }}>{igData.handle}</span>
+                                  </a>
+                                )}
+                              </div>
+                              <div style={{ fontSize: 10.5, color: 'var(--t3)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 170 }}>
+                                {c.email ? (
+                                  <a
+                                    href={`mailto:${c.email}`}
+                                    onClick={e => e.stopPropagation()}
+                                    style={{ color: 'var(--t3)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}
+                                    title={`Email ${c.email}`}
+                                  >
+                                    <GmailIcon size={12} />
+                                    <span>{c.email}</span>
+                                  </a>
+                                ) : null}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -176,13 +237,6 @@ export default function CreatorCRM() {
                         <td style={{ fontSize: 11, color: 'var(--t2)' }}>{c.city || c.location || '—'}</td>
                         <td>
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t1)' }}>{(c.platforms?.instagram?.followers || c.followers || 0).toLocaleString()}</span>
-                        </td>
-                        <td>
-                          <select value={c.availability || 'available'} onChange={e => { e.stopPropagation(); handleAvailabilityChange(c._id, e.target.value); }}
-                            onClick={e => e.stopPropagation()}
-                            style={{ background: 'transparent', border: `1px solid ${av.color}40`, borderRadius: 99, padding: '3px 8px', fontSize: 10, color: av.color, cursor: 'pointer', outline: 'none' }}>
-                            {AVAIL.map(a => <option key={a.key} value={a.key} style={{ background: 'var(--s2)', color: 'var(--t1)' }}>{a.key}</option>)}
-                          </select>
                         </td>
                         <td>
                           <select value={c.crmStatus || 'registered'} onChange={e => { e.stopPropagation(); handleStatusChange(c._id, e.target.value); }}
@@ -221,19 +275,53 @@ export default function CreatorCRM() {
                   {selected.isVerified && <span style={{ background: 'rgba(230,95,43,0.12)', color: 'var(--acc)', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99 }}>✓ Verified Creator</span>}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>
-                  {selected.email} {selected.handle ? `• @${selected.handle}` : ''}
+                  {selected.email ? (
+                    <a
+                      href={`mailto:${selected.email}`}
+                      onClick={e => e.stopPropagation()}
+                      style={{ color: 'var(--t3)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                      onMouseEnter={e => e.currentTarget.style.color = 'var(--acc)'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--t3)'}
+                      title={`Send email to ${selected.email}`}
+                    >
+                      <GmailIcon size={13} />
+                      <span>{selected.email}</span>
+                    </a>
+                  ) : null}
+                  {selected.handle ? ` • @${selected.handle}` : ''}
                 </div>
                 {selected.bio && <p style={{ fontSize: 12, color: 'var(--t2)', marginTop: 6, marginBottom: 0, lineHeight: 1.4 }}>{selected.bio}</p>}
               </div>
-              {(selected.instagramUrl || selected.socialUrls?.instagram || selected.handle) && (
-                <a
-                  href={selected.instagramUrl || selected.socialUrls?.instagram || `https://instagram.com/${selected.handle}`}
-                  target="_blank" rel="noreferrer"
-                  style={{ padding: '7px 14px', background: 'linear-gradient(135deg,#e1306c,#f77737)', color: '#fff', borderRadius: 10, fontSize: 11.5, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => handleSyncCreatorSocial(selected._id)}
+                  disabled={syncingSocial}
+                  style={{
+                    padding: '7px 14px', background: 'var(--acc, #E65F2B)', color: '#fff',
+                    border: 'none', borderRadius: 10, fontSize: 11.5, fontWeight: 700,
+                    cursor: syncingSocial ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6
+                  }}
                 >
-                  Instagram ↗
-                </a>
-              )}
+                  <RefreshCw size={13} className={syncingSocial ? 'spin' : ''} />
+                  {syncingSocial ? 'Syncing...' : 'Sync Social Stats'}
+                </button>
+
+                {(() => {
+                  const ig = getInstagramLink(selected.instagramUrl || selected.socialUrls?.instagram || selected.handle || selected.instagram);
+                  if (!ig) return null;
+                  return (
+                    <a
+                      href={ig.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ padding: '7px 14px', background: 'linear-gradient(135deg,#e1306c,#f77737)', color: '#fff', borderRadius: 10, fontSize: 11.5, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 8px rgba(225, 48, 108, 0.25)' }}
+                    >
+                      <Instagram size={14} /> {ig.handle} <ExternalLink size={11} />
+                    </a>
+                  );
+                })()}
+              </div>
             </div>
 
             {/* 15 Specification Fields Grid */}
@@ -242,13 +330,27 @@ export default function CreatorCRM() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 10 }}>
 
                 <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>Phone Number</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', marginTop: 2 }}>{selected.phone || '—'}</div>
+                </div>
+
+                <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>
                   <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>City / Location</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', marginTop: 2 }}>{selected.city || selected.location || 'Not specified'}</div>
                 </div>
 
                 <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>Niche</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--acc)', marginTop: 2 }}>{selected.niche || 'General'}</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>All Niche(s)</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--acc)', marginTop: 2 }}>
+                    {selected.subNiches?.length ? selected.subNiches.join(', ') : (selected.niche || 'General')}
+                  </div>
+                </div>
+
+                <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>Open for Barter</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: selected.isBarterReady !== false ? '#16a34a' : 'var(--rose)', marginTop: 2 }}>
+                    {selected.isBarterReady !== false ? '🎁 Yes (Open)' : '💼 No (Paid Only)'}
+                  </div>
                 </div>
 
                 <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>

@@ -111,7 +111,20 @@ export default function AdminUsers() {
                           <Avatar src={u.avatar} name={u.displayName} size={32} />
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150 }}>{u.displayName}</div>
-                            <div style={{ fontSize: 10, color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150 }}>{u.email}</div>
+                            <div style={{ fontSize: 10, color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150 }}>
+                              {u.email ? (
+                                <a
+                                  href={`mailto:${u.email}`}
+                                  onClick={e => e.stopPropagation()}
+                                  style={{ color: 'var(--t3)', textDecoration: 'none' }}
+                                  onMouseEnter={e => e.currentTarget.style.color = 'var(--acc)'}
+                                  onMouseLeave={e => e.currentTarget.style.color = 'var(--t3)'}
+                                  title={`Send email to ${u.email}`}
+                                >
+                                  {u.email}
+                                </a>
+                              ) : '—'}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -158,32 +171,95 @@ export default function AdminUsers() {
             )}
           </div>}
 
-      <Modal open={!!selected} onClose={() => setSelected(null)} title={selected?.displayName} maxWidth={440}>
+      <Modal open={!!selected} onClose={() => setSelected(null)} title={selected?.displayName || 'User Details'} maxWidth={460} fullscreenMobile={false}>
         {selected && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <Avatar src={selected.avatar} name={selected.displayName} size={56} />
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--t1)' }}>{selected.displayName}</div>
-                <div style={{ fontSize: 12, color: 'var(--t3)' }}>{selected.email}</div>
-                <div style={{ marginTop: 6, display: 'flex', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* User Header Profile Card */}
+            <div style={{
+              display: 'flex', gap: 14, alignItems: 'center', padding: '16px 18px',
+              borderRadius: 16,
+              background: 'linear-gradient(135deg, rgba(230,95,43,0.08) 0%, rgba(212,162,76,0.04) 100%), var(--s1, #FAF7F2)',
+              border: '1px solid rgba(230, 95, 43, 0.25)',
+              boxShadow: '0 4px 14px rgba(230, 95, 43, 0.06)'
+            }}>
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <Avatar src={selected.avatar} name={selected.displayName} size={52} />
+                <div style={{
+                  position: 'absolute', inset: -2, borderRadius: '50%',
+                  border: '1.5px solid var(--acc, #E65F2B)', pointerEvents: 'none',
+                  opacity: 0.8
+                }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)', fontFamily: "'Inter', sans-serif", lineHeight: 1.2 }}>
+                  {selected.displayName}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--t2)', marginTop: 2, fontWeight: 500 }}>
+                  {selected.email}
+                </div>
+                <div style={{ marginTop: 8, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                   {(selected.roles?.length ? selected.roles : [selected.role]).map(r => (
-                    <span key={r} className={`badge badge-${r === 'admin' ? 'gold' : r === 'brand' ? 'blue' : r === 'team_member' ? 'indigo' : 'green'}`} style={{ fontSize: 9 }}>{r}</span>
+                    <span
+                      key={r}
+                      style={{
+                        padding: '2.5px 9px', borderRadius: 99,
+                        background: r === 'admin' ? 'rgba(212, 162, 76, 0.16)' : r === 'brand' ? 'rgba(59, 130, 246, 0.16)' : r === 'team_member' ? 'rgba(99, 102, 241, 0.16)' : 'rgba(230, 95, 43, 0.14)',
+                        color: r === 'admin' ? 'var(--gold)' : r === 'brand' ? '#2563eb' : r === 'team_member' ? '#4f46e5' : 'var(--acc)',
+                        border: `1px solid ${r === 'admin' ? 'rgba(212, 162, 76, 0.35)' : r === 'brand' ? 'rgba(59, 130, 246, 0.35)' : r === 'team_member' ? 'rgba(99, 102, 241, 0.35)' : 'rgba(230, 95, 43, 0.35)'}`,
+                        fontSize: 10.5, fontWeight: 800, textTransform: 'capitalize', letterSpacing: '0.02em'
+                      }}
+                    >
+                      {r.replace('_', ' ')}
+                    </span>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="grid-2" style={{ gap: 8 }}>
-              {[['Niche', selected.niche || '—'], ['Score', selected.creatorScore || 0], ['Rank', selected.rank || '—'], ['Campaigns', selected.totalCampaigns || 0], ['Joined', new Date(selected.createdAt).toLocaleDateString()], ['Status', selected.verificationStatus || '—']].map(([l, v]) => (
-                <div key={l} style={{ padding: '8px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: 'var(--r)' }}>
-                  <div style={{ fontSize: 10, color: 'var(--t3)' }}>{l}</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)' }}>{v}</div>
+
+            {/* Grid Stats */}
+            <div className="grid-2" style={{ gap: 10 }}>
+              {[
+                ['Phone', selected.phone || '—'],
+                ['Niche', selected.niche || '—'],
+                ['Score', selected.creatorScore || 0],
+                ['Rank', selected.rank || '—'],
+                ['Campaigns', selected.totalCampaigns || 0],
+                ['Joined', new Date(selected.createdAt).toLocaleDateString()],
+                ['Status', selected.verificationStatus || '—']
+              ].map(([l, v]) => (
+                <div key={l} style={{
+                  padding: '10px 14px', background: 'var(--s2)', borderRadius: 12,
+                  border: '1px solid var(--border)', boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                }}>
+                  <div style={{ fontSize: 10.5, color: 'var(--t3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{l}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--t1)', marginTop: 2 }}>{v}</div>
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => { setSelected(null); navigate('/admin/roles'); }} className="btn btn-primary btn-sm"><UserCog size={12} />Manage Roles</button>
-              <button onClick={() => toggleBan(selected)} className="btn btn-danger btn-sm"><Ban size={12} />{selected.isBanned ? 'Unban' : 'Ban'}</button>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+              <button
+                onClick={() => { setSelected(null); navigate('/admin/roles'); }}
+                className="tactile-btn-new-campaign"
+                style={{ flex: 1, justifyContent: 'center', fontSize: 12.5 }}
+              >
+                <UserCog size={14} /> Manage Roles
+              </button>
+              <button
+                onClick={() => toggleBan(selected)}
+                style={{
+                  flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  padding: '10px 16px', borderRadius: 14,
+                  background: selected.isBanned ? 'rgba(34, 197, 94, 0.14)' : 'rgba(239, 68, 68, 0.12)',
+                  color: selected.isBanned ? '#16a34a' : '#dc2626',
+                  border: `1.5px solid ${selected.isBanned ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+                  fontWeight: 800, fontSize: 12.5, cursor: 'pointer', transition: 'all 0.18s'
+                }}
+              >
+                <Ban size={14} /> {selected.isBanned ? 'Unban User' : 'Ban User'}
+              </button>
             </div>
           </div>
         )}

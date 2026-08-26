@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { adminAPI } from '../../api';
 import { PageLoader, StatCard, Btn } from '../../components/ui';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
@@ -131,37 +132,38 @@ export default function AdminAnalytics() {
       </div>
 
       {/* Broadcast modal */}
-      {bcastOpen && (
-        <div onClick={()=>setBcastOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:2000, padding:16, backdropFilter:'blur(4px)' }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--s2)', border:'1px solid var(--border2)', borderRadius:14, padding:24, width:'100%', maxWidth:460, animation:'fadeUp 0.2s ease' }}>
+      {bcastOpen && createPortal(
+        <div onClick={()=>setBcastOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(25, 20, 18, 0.65)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:2000, padding:16, backdropFilter:'blur(10px)', WebkitBackdropFilter:'blur(10px)' }}>
+          <div onClick={e=>e.stopPropagation()} className="glass-modal" style={{ border:'1.5px solid var(--border2, rgba(230, 95, 43, 0.25))', borderRadius:20, padding:26, width:'100%', maxWidth:460, boxShadow:'0 24px 60px rgba(0,0,0,0.35)' }}>
             <div className="flex-between mb-16">
-              <h3 style={{ fontFamily:'var(--fd)', fontWeight:700, fontSize:15 }}>📢 Broadcast Notification</h3>
-              <button onClick={()=>setBcastOpen(false)} className="btn btn-ghost btn-icon" style={{fontSize:18}}>×</button>
+              <h3 style={{ fontFamily:'var(--fd)', fontWeight:800, fontSize:16, color:'var(--t1)', margin:0 }}>📢 Broadcast Notification</h3>
+              <button onClick={()=>setBcastOpen(false)} style={{ background:'rgba(230,95,43,0.08)', border:'1px solid rgba(230,95,43,0.2)', borderRadius:10, cursor:'pointer', color:'var(--acc)', fontSize:18, lineHeight:1, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
             </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
               <div className="form-group">
-                <label className="form-label">Send To</label>
-                <select className="form-input" value={bcastForm.role} onChange={e=>setBcastForm(p=>({...p,role:e.target.value}))}>
+                <label className="form-label" style={{ fontWeight: 700 }}>Send To</label>
+                <select className="form-input" value={bcastForm.role} onChange={e=>setBcastForm(p=>({...p,role:e.target.value}))} style={{ background: 'var(--s1)' }}>
                   <option value="">All Users</option>
                   <option value="creator">All Creators</option>
                   <option value="brand">All Brands</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Title *</label>
-                <input className="form-input" value={bcastForm.title} onChange={e=>setBcastForm(p=>({...p,title:e.target.value}))} placeholder="Notification title…"/>
+                <label className="form-label" style={{ fontWeight: 700 }}>Title *</label>
+                <input className="form-input" value={bcastForm.title} onChange={e=>setBcastForm(p=>({...p,title:e.target.value}))} placeholder="Notification title…" style={{ background: 'var(--s1)' }}/>
               </div>
               <div className="form-group">
-                <label className="form-label">Message *</label>
-                <textarea className="form-input form-textarea" value={bcastForm.body} onChange={e=>setBcastForm(p=>({...p,body:e.target.value}))} placeholder="Your message to users…" style={{minHeight:90}}/>
+                <label className="form-label" style={{ fontWeight: 700 }}>Message *</label>
+                <textarea className="form-input form-textarea" value={bcastForm.body} onChange={e=>setBcastForm(p=>({...p,body:e.target.value}))} placeholder="Your message to users…" style={{minHeight:90, background: 'var(--s1)'}}/>
               </div>
-              <div className="flex-between" style={{marginTop:4}}>
+              <div className="flex-between" style={{marginTop:6}}>
                 <Btn variant="ghost" onClick={()=>setBcastOpen(false)}>Cancel</Btn>
                 <Btn variant="primary" onClick={sendBroadcast} disabled={sending}>{sending?'Sending…':'Send Broadcast'}</Btn>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

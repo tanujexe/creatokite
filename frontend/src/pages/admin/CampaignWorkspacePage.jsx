@@ -155,10 +155,13 @@ function UnifiedCreatorSelector({ campaign, onAssign, onAnalyze, analyzing }) {
             key={s.key}
             onClick={() => setActiveSection(s.key)}
             style={{
-              padding:'7px 12px', fontSize:11, fontWeight:600, border:'none', cursor:'pointer',
-              borderRadius:'var(--r)', whiteSpace:'nowrap',
-              background: activeSection === s.key ? 'var(--p)' : 'rgba(255,255,255,0.06)',
-              color: activeSection === s.key ? '#fff' : 'var(--t2)', transition:'all 0.12s',
+              padding:'8px 16px', fontSize:12, fontWeight:700, cursor:'pointer',
+              borderRadius:10, whiteSpace:'nowrap',
+              background: activeSection === s.key ? 'var(--acc)' : 'var(--s1)',
+              color: activeSection === s.key ? '#ffffff' : 'var(--t2)',
+              border: activeSection === s.key ? '1px solid var(--acc)' : '1px solid var(--border)',
+              boxShadow: activeSection === s.key ? '0 2px 10px rgba(230,95,43,0.35)' : 'none',
+              transition:'all 0.18s ease',
             }}
           >
             {s.label}{s.count != null ? ` (${s.count})` : ''}
@@ -446,9 +449,9 @@ export default function CampaignWorkspacePage() {
             onClick={() => setTab(t.key)}
             style={{
               padding:'10px 16px', fontSize:12, fontWeight: tab === t.key ? 700 : 500,
-              color: tab === t.key ? 'var(--p)' : 'var(--t2)',
+              color: tab === t.key ? 'var(--acc)' : 'var(--t2)',
               background:'transparent', border:'none', cursor:'pointer', whiteSpace:'nowrap',
-              borderBottom:`2px solid ${tab === t.key ? 'var(--p)' : 'transparent'}`,
+              borderBottom:`2px solid ${tab === t.key ? 'var(--acc)' : 'transparent'}`,
               transition:'all 0.12s',
             }}
           >
