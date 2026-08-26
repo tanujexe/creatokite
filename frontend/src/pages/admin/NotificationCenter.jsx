@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Btn, Input, Textarea, Avatar } from '../../components/ui';
@@ -456,13 +457,14 @@ export default function NotificationCenter() {
               key={t.key}
               onClick={() => setTab(t.key)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', fontSize: 12,
-                fontWeight: active ? 700 : 500, color: active ? 'var(--p)' : 'var(--t2)',
-                background: 'transparent', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                borderBottom: `2px solid ${active ? 'var(--p)' : 'transparent'}`, transition: 'all 0.15s'
+                display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', fontSize: 12.5,
+                fontWeight: active ? 800 : 500, color: active ? 'var(--acc, #E65F2B)' : 'var(--t2)',
+                background: active ? 'rgba(230, 95, 43, 0.08)' : 'transparent', borderRadius: '8px 8px 0 0',
+                border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+                borderBottom: `2.5px solid ${active ? 'var(--acc, #E65F2B)' : 'transparent'}`, transition: 'all 0.18s'
               }}
             >
-              <Icon size={13} /> {t.label}
+              <Icon size={14} style={{ color: active ? 'var(--acc, #E65F2B)' : 'var(--t2)' }} /> {t.label}
             </button>
           );
         })}
@@ -793,36 +795,59 @@ export default function NotificationCenter() {
       {/* ══════════════════════════════════════════════════
           CREATE NOTIFICATION STEPPER WIZARD MODAL
          ══════════════════════════════════════════════════ */}
-      {showWizard && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div className="card" style={{ width: '100%', maxWidth: 850, maxHeight: '90vh', overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {showWizard && createPortal(
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 2000,
+          background: 'rgba(25, 20, 18, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16
+        }}>
+          <div className="glass-modal" style={{
+            width: '100%', maxWidth: 860, maxHeight: '90vh', overflowY: 'auto',
+            padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 22,
+            borderRadius: 20, border: '1.5px solid var(--border2, rgba(230, 95, 43, 0.25))',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(230,95,43,0.12)',
+          }}>
 
             {/* Wizard Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
               <div>
-                <h2 style={{ fontSize: 18, fontWeight: 800, fontFamily: 'var(--fd)' }}>Create & Dispatch Notification</h2>
-                <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>Step {wizardStep} of 5 — Configure platform communication</div>
+                <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--fd)', color: 'var(--t1)', margin: 0, letterSpacing: '-0.02em' }}>
+                  Create & Dispatch Notification
+                </h2>
+                <div style={{ fontSize: 12.5, color: 'var(--t2)', marginTop: 4, fontWeight: 500 }}>
+                  Step {wizardStep} of 5 — Configure platform communication
+                </div>
               </div>
-              <button onClick={() => setShowWizard(false)} className="btn btn-ghost btn-icon">
-                <X size={18} />
+              <button
+                onClick={() => setShowWizard(false)}
+                style={{
+                  width: 32, height: 32, borderRadius: 10, background: 'rgba(230,95,43,0.08)',
+                  border: '1px solid rgba(230,95,43,0.2)', color: 'var(--acc)', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s'
+                }}
+              >
+                <X size={16} />
               </button>
             </div>
 
             {/* Stepper Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {['1. Audience', '2. Content', '3. Delivery', '4. Schedule', '5. Preview & Send'].map((s, idx) => {
                 const stepNum = idx + 1;
                 const active = wizardStep === stepNum;
                 const done = wizardStep > stepNum;
                 return (
-                  <div key={s} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div key={s} style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
                     <button
                       onClick={() => setWizardStep(stepNum)}
                       style={{
-                        flex: 1, padding: '8px 10px', borderRadius: 8, fontSize: 11, fontWeight: active || done ? 700 : 400,
-                        background: active ? 'rgba(108,99,255,0.2)' : done ? 'rgba(0,255,163,0.1)' : 'rgba(255,255,255,0.04)',
-                        color: active ? 'var(--p2)' : done ? 'var(--acc2)' : 'var(--t3)',
-                        border: active ? '1px solid var(--p)' : '1px solid transparent', cursor: 'pointer', textAlign: 'center'
+                        width: '100%', padding: '9px 10px', borderRadius: 10, fontSize: 11.5,
+                        fontWeight: active ? 800 : done ? 700 : 500,
+                        background: active ? 'rgba(230, 95, 43, 0.14)' : done ? 'rgba(34, 197, 94, 0.12)' : 'var(--s2)',
+                        color: active ? 'var(--acc, #E65F2B)' : done ? '#16a34a' : 'var(--t2)',
+                        border: active ? '1.5px solid var(--acc, #E65F2B)' : done ? '1px solid rgba(34, 197, 94, 0.35)' : '1px solid var(--border)',
+                        boxShadow: active ? '0 3px 10px rgba(230, 95, 43, 0.12)' : '0 1px 3px rgba(0,0,0,0.03)',
+                        cursor: 'pointer', textAlign: 'center', transition: 'all 0.18s'
                       }}
                     >
                       {done ? '✓ ' : ''}{s}
@@ -835,8 +860,8 @@ export default function NotificationCenter() {
             {/* ── STEP 1: AUDIENCE ───────────────────────────── */}
             {wizardStep === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700 }}>Select Target Audience</h3>
-                <div className="grid-3" style={{ gap: 10 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)', margin: 0 }}>Select Target Audience</h3>
+                <div className="grid-3" style={{ gap: 12 }}>
                   {[
                     { key: 'Everyone', label: '🌐 Everyone', desc: 'All registered platform users' },
                     { key: 'All Creators', label: '👥 All Creators', desc: 'Active & onboarded creators' },
@@ -854,13 +879,16 @@ export default function NotificationCenter() {
                         key={aud.key}
                         onClick={() => setWizardData(p => ({ ...p, audienceType: aud.key }))}
                         style={{
-                          padding: 12, borderRadius: 10, cursor: 'pointer',
-                          background: selected ? 'rgba(108,99,255,0.15)' : 'rgba(255,255,255,0.03)',
-                          border: selected ? '1px solid var(--p)' : '1px solid var(--border)', transition: 'all 0.15s'
+                          padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
+                          background: selected ? 'rgba(230, 95, 43, 0.14)' : 'var(--s2)',
+                          border: selected ? '1.5px solid var(--acc, #E65F2B)' : '1px solid var(--border)',
+                          boxShadow: selected ? '0 4px 14px rgba(230, 95, 43, 0.16)' : '0 1px 4px rgba(0,0,0,0.03)',
+                          transform: selected ? 'translateY(-2px)' : 'none',
+                          transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
                         }}
                       >
-                        <div style={{ fontWeight: 700, fontSize: 13, color: selected ? 'var(--p2)' : 'var(--t1)' }}>{aud.label}</div>
-                        <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 4 }}>{aud.desc}</div>
+                        <div style={{ fontWeight: selected ? 800 : 700, fontSize: 13.5, color: selected ? 'var(--acc, #E65F2B)' : 'var(--t1)' }}>{aud.label}</div>
+                        <div style={{ fontSize: 11, color: 'var(--t2)', marginTop: 4, lineHeight: 1.3 }}>{aud.desc}</div>
                       </div>
                     );
                   })}
@@ -868,34 +896,38 @@ export default function NotificationCenter() {
 
                 {/* Specific Creator / User Selection Component */}
                 {(wizardData.audienceType === 'Specific Creator' || wizardData.audienceType === 'Specific Brand' || wizardData.audienceType === 'Specific Team Member') && (
-                  <div style={{ padding: 14, background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--p2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ padding: 16, background: 'var(--s2)', borderRadius: 14, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span>👤 Search & Select Specific {wizardData.audienceType === 'Specific Brand' ? 'Brands' : wizardData.audienceType === 'Specific Team Member' ? 'Team Members' : 'Creators'}</span>
-                      {selectedUsers.length > 0 && <span className="badge badge-purple">{selectedUsers.length} selected</span>}
+                      {selectedUsers.length > 0 && (
+                        <span style={{ padding: '3px 10px', borderRadius: 99, background: 'rgba(230, 95, 43, 0.14)', color: 'var(--acc)', fontSize: 11, fontWeight: 700 }}>
+                          {selectedUsers.length} selected
+                        </span>
+                      )}
                     </div>
 
                     {/* Search Bar */}
                     <div style={{ position: 'relative' }}>
-                      <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--t3)' }} />
+                      <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--t3)' }} />
                       <input
                         type="text"
                         placeholder={`Search by name, handle, email...`}
                         className="form-input"
                         value={creatorSearchQuery}
                         onChange={e => setCreatorSearchQuery(e.target.value)}
-                        style={{ paddingLeft: 32, fontSize: 12 }}
+                        style={{ paddingLeft: 36, fontSize: 12.5, background: 'var(--s1, #FAF7F2)' }}
                       />
                     </div>
 
                     {/* Selected User Chips */}
                     {selectedUsers.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '8px 10px', background: 'rgba(108,99,255,0.08)', borderRadius: 8, border: '1px solid rgba(108,99,255,0.2)' }}>
-                        <span style={{ fontSize: 11, color: 'var(--t3)', alignSelf: 'center' }}>Recipients:</span>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '10px 12px', background: 'rgba(230, 95, 43, 0.08)', borderRadius: 10, border: '1px solid rgba(230, 95, 43, 0.25)' }}>
+                        <span style={{ fontSize: 11.5, color: 'var(--t2)', alignSelf: 'center', fontWeight: 600 }}>Recipients:</span>
                         {selectedUsers.map(u => (
-                          <span key={u._id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 9px', borderRadius: 99, background: 'rgba(108,99,255,0.2)', border: '1px solid rgba(108,99,255,0.4)', fontSize: 11, fontWeight: 600, color: 'var(--p2)' }}>
-                            <Avatar src={u.avatar} name={u.displayName} size={16} />
+                          <span key={u._id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 99, background: 'rgba(230, 95, 43, 0.16)', border: '1px solid rgba(230, 95, 43, 0.4)', fontSize: 11.5, fontWeight: 700, color: 'var(--acc)' }}>
+                            <Avatar src={u.avatar} name={u.displayName} size={18} />
                             {u.displayName}
-                            <X size={10} style={{ cursor: 'pointer' }} onClick={() => setSelectedUsers(prev => prev.filter(x => x._id !== u._id))} />
+                            <X size={11} style={{ cursor: 'pointer' }} onClick={() => setSelectedUsers(prev => prev.filter(x => x._id !== u._id))} />
                           </span>
                         ))}
                       </div>
@@ -904,9 +936,9 @@ export default function NotificationCenter() {
                     {/* User Search List */}
                     <div style={{ maxHeight: 220, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {loadingUsers ? (
-                        <div style={{ fontSize: 12, color: 'var(--t3)', padding: 10, textAlign: 'center' }}>Loading user profiles...</div>
+                        <div style={{ fontSize: 12, color: 'var(--t3)', padding: 12, textAlign: 'center' }}>Loading user profiles...</div>
                       ) : fetchedUsers.length === 0 ? (
-                        <div style={{ fontSize: 12, color: 'var(--t3)', padding: 10, textAlign: 'center' }}>No users found. Try adjusting your search query.</div>
+                        <div style={{ fontSize: 12, color: 'var(--t3)', padding: 12, textAlign: 'center' }}>No users found. Try adjusting your search query.</div>
                       ) : (
                         fetchedUsers.map(u => {
                           const isSelected = selectedUsers.some(x => x._id === u._id);
@@ -921,19 +953,24 @@ export default function NotificationCenter() {
                                 }
                               }}
                               style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px',
-                                borderRadius: 8, background: isSelected ? 'rgba(108,99,255,0.15)' : 'rgba(255,255,255,0.02)',
-                                border: isSelected ? '1px solid var(--p)' : '1px solid var(--border)', cursor: 'pointer', transition: 'all 0.12s'
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px',
+                                borderRadius: 10, background: isSelected ? 'rgba(230, 95, 43, 0.12)' : 'var(--s1, #FAF7F2)',
+                                border: isSelected ? '1.5px solid var(--acc)' : '1px solid var(--border)', cursor: 'pointer', transition: 'all 0.12s'
                               }}
                             >
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <Avatar src={u.avatar} name={u.displayName} size={30} />
                                 <div>
-                                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t1)' }}>{u.displayName}</div>
-                                  <div style={{ fontSize: 10, color: 'var(--t3)' }}>@{u.handle || u.email} · {u.niche || u.role} {u.creatorScore ? `· ⚡${u.creatorScore}` : ''}</div>
+                                  <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--t1)' }}>{u.displayName}</div>
+                                  <div style={{ fontSize: 10.5, color: 'var(--t2)' }}>@{u.handle || u.email} · {u.niche || u.role} {u.creatorScore ? `· ⚡${u.creatorScore}` : ''}</div>
                                 </div>
                               </div>
-                              <div style={{ width: 20, height: 20, borderRadius: 6, border: isSelected ? '1px solid var(--p)' : '1px solid var(--border)', background: isSelected ? 'var(--p)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 800 }}>
+                              <div style={{
+                                width: 22, height: 22, borderRadius: 6,
+                                border: isSelected ? '1.5px solid var(--acc)' : '1px solid var(--border)',
+                                background: isSelected ? 'var(--acc)' : 'transparent',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 800
+                              }}>
                                 {isSelected && '✓'}
                               </div>
                             </div>
@@ -945,20 +982,20 @@ export default function NotificationCenter() {
                 )}
 
                 {wizardData.audienceType === 'Custom Audience' && (
-                  <div style={{ padding: 14, background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold)' }}>⚡ Custom Audience Builder Filters</div>
-                    <div className="grid-2" style={{ gap: 10 }}>
+                  <div style={{ padding: 16, background: 'var(--s2)', borderRadius: 14, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--acc)' }}>⚡ Custom Audience Builder Filters</div>
+                    <div className="grid-2" style={{ gap: 12 }}>
                       <div>
-                        <label className="form-label" style={{ fontSize: 11 }}>Creator Category</label>
-                        <select className="form-input" style={{ fontSize: 12 }}>
+                        <label className="form-label" style={{ fontSize: 11.5, fontWeight: 700 }}>Creator Category</label>
+                        <select className="form-input" style={{ fontSize: 12.5, background: 'var(--s1)' }}>
                           <option>Tech & AI</option>
                           <option>Fashion & Beauty</option>
                           <option>Gaming & Esports</option>
                         </select>
                       </div>
                       <div>
-                        <label className="form-label" style={{ fontSize: 11 }}>Follower Range</label>
-                        <select className="form-input" style={{ fontSize: 12 }}>
+                        <label className="form-label" style={{ fontSize: 11.5, fontWeight: 700 }}>Follower Range</label>
+                        <select className="form-input" style={{ fontSize: 12.5, background: 'var(--s1)' }}>
                           <option>10K–50K</option>
                           <option>50K–100K</option>
                           <option>100K+</option>
@@ -968,7 +1005,13 @@ export default function NotificationCenter() {
                   </div>
                 )}
 
-                <div style={{ padding: '10px 14px', background: 'rgba(0,255,163,0.06)', borderRadius: 8, border: '1px solid rgba(0,255,163,0.2)', fontSize: 12, color: 'var(--acc2)', fontWeight: 600 }}>
+                <div style={{
+                  padding: '12px 18px', background: 'rgba(230, 95, 43, 0.10)',
+                  borderRadius: 12, border: '1px solid rgba(230, 95, 43, 0.28)',
+                  fontSize: 12.5, color: 'var(--acc, #E65F2B)', fontWeight: 700,
+                  display: 'flex', alignItems: 'center', gap: 8
+                }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--acc, #E65F2B)' }} />
                   Matching Target Audience: ~{wizardData.audienceType.startsWith('Specific') ? selectedUsers.length : 2184} active users
                 </div>
               </div>
@@ -976,8 +1019,8 @@ export default function NotificationCenter() {
 
             {/* ── STEP 2: CONTENT ────────────────────────────── */}
             {wizardStep === 2 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700 }}>Compose Notification Content</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)', margin: 0 }}>Compose Notification Content</h3>
                 <Input
                   label="Notification Title *"
                   value={wizardData.title}
@@ -998,21 +1041,25 @@ export default function NotificationCenter() {
                   style={{ minHeight: 110 }}
                 />
 
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 11, color: 'var(--t3)' }}>Insert Variables:</span>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 11.5, color: 'var(--t2)', fontWeight: 600 }}>Insert Variables:</span>
                   {['{{creatorName}}', '{{campaignName}}', '{{brandName}}', '{{deadline}}'].map(v => (
                     <button
                       key={v}
                       type="button"
                       onClick={() => setWizardData(p => ({ ...p, content: p.content + ' ' + v }))}
-                      style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(108,99,255,0.15)', color: 'var(--p2)', border: 'none', cursor: 'pointer' }}
+                      style={{
+                        fontSize: 10.5, padding: '4px 10px', borderRadius: 99,
+                        background: 'rgba(230, 95, 43, 0.12)', color: 'var(--acc)',
+                        border: '1px solid rgba(230, 95, 43, 0.28)', cursor: 'pointer', fontWeight: 700
+                      }}
                     >
                       + {v}
                     </button>
                   ))}
                 </div>
 
-                <div className="grid-2" style={{ gap: 10 }}>
+                <div className="grid-2" style={{ gap: 12 }}>
                   <Input label="Action Button Label" value={wizardData.ctaLabel} onChange={e => setWizardData(p => ({ ...p, ctaLabel: e.target.value }))} placeholder="Apply Now" />
                   <Input label="Action Target URL / Route" value={wizardData.ctaUrl} onChange={e => setWizardData(p => ({ ...p, ctaUrl: e.target.value }))} placeholder="/opportunities" />
                 </div>
@@ -1021,11 +1068,11 @@ export default function NotificationCenter() {
 
             {/* ── STEP 3: DELIVERY ───────────────────────────── */}
             {wizardStep === 3 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700 }}>Delivery Channels & Settings</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)', margin: 0 }}>Delivery Channels & Settings</h3>
 
                 <div className="form-group">
-                  <label className="form-label">Delivery Channels</label>
+                  <label className="form-label" style={{ fontWeight: 700, marginBottom: 8 }}>Delivery Channels</label>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {['In-App', 'Email', 'Push Notification', 'SMS', 'WhatsApp'].map(c => {
                       const active = wizardData.channels.includes(c);
@@ -1038,10 +1085,11 @@ export default function NotificationCenter() {
                             channels: active ? p.channels.filter(x => x !== c) : [...p.channels, c]
                           }))}
                           style={{
-                            padding: '8px 14px', borderRadius: 100, fontSize: 12, cursor: 'pointer',
-                            background: active ? 'rgba(108,99,255,0.2)' : 'rgba(255,255,255,0.04)',
-                            color: active ? 'var(--p2)' : 'var(--t2)',
-                            border: active ? '1px solid var(--p)' : '1px solid var(--border)'
+                            padding: '8px 16px', borderRadius: 100, fontSize: 12.5, cursor: 'pointer', fontWeight: active ? 700 : 500,
+                            background: active ? 'rgba(230, 95, 43, 0.14)' : 'var(--s2)',
+                            color: active ? 'var(--acc)' : 'var(--t1)',
+                            border: active ? '1.5px solid var(--acc)' : '1px solid var(--border)',
+                            boxShadow: active ? '0 3px 10px rgba(230,95,43,0.12)' : '0 1px 3px rgba(0,0,0,0.03)'
                           }}
                         >
                           {active ? '✓ ' : ''}{c}
@@ -1051,10 +1099,10 @@ export default function NotificationCenter() {
                   </div>
                 </div>
 
-                <div className="grid-2" style={{ gap: 10 }}>
+                <div className="grid-2" style={{ gap: 12 }}>
                   <div>
-                    <label className="form-label">Priority Level</label>
-                    <select className="form-input" value={wizardData.priority} onChange={e => setWizardData(p => ({ ...p, priority: e.target.value }))}>
+                    <label className="form-label" style={{ fontWeight: 700 }}>Priority Level</label>
+                    <select className="form-input" value={wizardData.priority} onChange={e => setWizardData(p => ({ ...p, priority: e.target.value }))} style={{ background: 'var(--s1)' }}>
                       <option value="Low">Low Priority</option>
                       <option value="Medium">Medium Priority</option>
                       <option value="High">High Priority</option>
@@ -1062,8 +1110,8 @@ export default function NotificationCenter() {
                     </select>
                   </div>
                   <div>
-                    <label className="form-label">Notification Category</label>
-                    <select className="form-input" value={wizardData.category} onChange={e => setWizardData(p => ({ ...p, category: e.target.value }))}>
+                    <label className="form-label" style={{ fontWeight: 700 }}>Notification Category</label>
+                    <select className="form-input" value={wizardData.category} onChange={e => setWizardData(p => ({ ...p, category: e.target.value }))} style={{ background: 'var(--s1)' }}>
                       <option value="Campaign">Campaign</option>
                       <option value="Payments">Payments</option>
                       <option value="Verification">Verification</option>
@@ -1079,8 +1127,9 @@ export default function NotificationCenter() {
                     id="reqAck"
                     checked={wizardData.requireAck}
                     onChange={e => setWizardData(p => ({ ...p, requireAck: e.target.checked }))}
+                    style={{ accentColor: 'var(--acc)' }}
                   />
-                  <label htmlFor="reqAck" style={{ fontSize: 12, cursor: 'pointer', color: 'var(--t1)' }}>
+                  <label htmlFor="reqAck" style={{ fontSize: 13, cursor: 'pointer', color: 'var(--t1)', fontWeight: 600 }}>
                     Require User Read Acknowledgment
                   </label>
                 </div>
@@ -1089,9 +1138,9 @@ export default function NotificationCenter() {
 
             {/* ── STEP 4: SCHEDULE ───────────────────────────── */}
             {wizardStep === 4 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700 }}>Dispatch Schedule</h3>
-                <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)', margin: 0 }}>Dispatch Schedule</h3>
+                <div style={{ display: 'flex', gap: 12 }}>
                   {[
                     { key: 'now', label: '🚀 Send Immediately' },
                     { key: 'schedule', label: '🗓️ Schedule for Later' },
@@ -1102,10 +1151,12 @@ export default function NotificationCenter() {
                       type="button"
                       onClick={() => setWizardData(p => ({ ...p, scheduleType: s.key }))}
                       style={{
-                        flex: 1, padding: 14, borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                        background: wizardData.scheduleType === s.key ? 'rgba(108,99,255,0.2)' : 'rgba(255,255,255,0.04)',
-                        color: wizardData.scheduleType === s.key ? 'var(--p2)' : 'var(--t2)',
-                        border: wizardData.scheduleType === s.key ? '1px solid var(--p)' : '1px solid var(--border)'
+                        flex: 1, padding: 16, borderRadius: 14, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                        background: wizardData.scheduleType === s.key ? 'rgba(230, 95, 43, 0.14)' : 'var(--s2)',
+                        color: wizardData.scheduleType === s.key ? 'var(--acc)' : 'var(--t1)',
+                        border: wizardData.scheduleType === s.key ? '1.5px solid var(--acc)' : '1px solid var(--border)',
+                        boxShadow: wizardData.scheduleType === s.key ? '0 4px 14px rgba(230,95,43,0.14)' : '0 1px 4px rgba(0,0,0,0.03)',
+                        transition: 'all 0.18s'
                       }}
                     >
                       {s.label}
@@ -1114,7 +1165,7 @@ export default function NotificationCenter() {
                 </div>
 
                 {wizardData.scheduleType === 'schedule' && (
-                  <div className="grid-2" style={{ gap: 10, marginTop: 10 }}>
+                  <div className="grid-2" style={{ gap: 12, marginTop: 10 }}>
                     <Input label="Date" type="date" value={wizardData.scheduledDate} onChange={e => setWizardData(p => ({ ...p, scheduledDate: e.target.value }))} />
                     <Input label="Time" type="time" value={wizardData.scheduledTime} onChange={e => setWizardData(p => ({ ...p, scheduledTime: e.target.value }))} />
                   </div>
@@ -1126,61 +1177,99 @@ export default function NotificationCenter() {
             {wizardStep === 5 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700 }}>Live Multi-Device Preview</h3>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    <button onClick={() => setPreviewDevice('desktop')} className={`btn btn-xs ${previewDevice === 'desktop' ? 'btn-primary' : 'btn-ghost'}`}><Laptop size={12} /></button>
-                    <button onClick={() => setPreviewDevice('mobile')} className={`btn btn-xs ${previewDevice === 'mobile' ? 'btn-primary' : 'btn-ghost'}`}><Smartphone size={12} /></button>
+                  <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)', margin: 0 }}>Live Multi-Device Preview</h3>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      onClick={() => setPreviewDevice('desktop')}
+                      style={{
+                        padding: '6px 12px', borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                        background: previewDevice === 'desktop' ? 'var(--acc)' : 'var(--s1)',
+                        color: previewDevice === 'desktop' ? '#FFFFFF' : 'var(--t2)', border: 'none'
+                      }}
+                    >
+                      <Laptop size={14} />
+                    </button>
+                    <button
+                      onClick={() => setPreviewDevice('mobile')}
+                      style={{
+                        padding: '6px 12px', borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                        background: previewDevice === 'mobile' ? 'var(--acc)' : 'var(--s1)',
+                        color: previewDevice === 'mobile' ? '#FFFFFF' : 'var(--t2)', border: 'none'
+                      }}
+                    >
+                      <Smartphone size={14} />
+                    </button>
                   </div>
                 </div>
 
                 {/* Card Preview Box */}
                 <div style={{
-                  maxWidth: previewDevice === 'mobile' ? 340 : '100%', margin: '0 auto', width: '100%',
-                  padding: 16, background: 'rgba(255,255,255,0.04)', borderRadius: 14, border: '1px solid var(--p)',
-                  boxShadow: '0 8px 24px rgba(108,99,255,0.15)'
+                  maxWidth: previewDevice === 'mobile' ? 360 : '100%', margin: '0 auto', width: '100%',
+                  padding: 20, background: 'var(--s2)', borderRadius: 16, border: '1.5px solid rgba(230, 95, 43, 0.3)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.08)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: 'rgba(108,99,255,0.2)', color: 'var(--p2)', fontWeight: 700 }}>
+                    <span style={{ fontSize: 10.5, padding: '3px 10px', borderRadius: 99, background: 'rgba(230, 95, 43, 0.14)', color: 'var(--acc)', fontWeight: 800 }}>
                       {wizardData.category}
                     </span>
-                    <span style={{ fontSize: 10, color: 'var(--t3)' }}>Just now</span>
+                    <span style={{ fontSize: 11, color: 'var(--t3)' }}>Just now</span>
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--t1)' }}>
+                  <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--t1)' }}>
                     {wizardData.title || 'Notification Title Preview'}
                   </div>
                   {wizardData.subtitle && (
-                    <div style={{ fontSize: 12, color: 'var(--gold)', marginTop: 2 }}>{wizardData.subtitle}</div>
+                    <div style={{ fontSize: 12.5, color: 'var(--gold)', marginTop: 3, fontWeight: 600 }}>{wizardData.subtitle}</div>
                   )}
-                  <p style={{ fontSize: 12, color: 'var(--t2)', marginTop: 8, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 13, color: 'var(--t2)', marginTop: 10, lineHeight: 1.5 }}>
                     {wizardData.content || 'Your composed notification body will be displayed here.'}
                   </p>
                   {wizardData.ctaLabel && (
-                    <button className="btn btn-primary btn-sm" style={{ marginTop: 12, fontSize: 11, gap: 4 }}>
-                      {wizardData.ctaLabel} <ArrowRight size={12} />
-                    </button>
+                    <Btn variant="primary" size="sm" style={{ marginTop: 14, fontSize: 12, gap: 6 }}>
+                      {wizardData.ctaLabel} <ArrowRight size={13} />
+                    </Btn>
                   )}
                 </div>
               </div>
             )}
 
             {/* Wizard Navigation Footer */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 14, borderTop: '1px solid var(--border)' }}>
-              <Btn variant="ghost" onClick={() => wizardStep === 1 ? setShowWizard(false) : setWizardStep(s => s - 1)} disabled={dispatching}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 18, borderTop: '1px solid var(--border)' }}>
+              <Btn variant="ghost" onClick={() => wizardStep === 1 ? setShowWizard(false) : setWizardStep(s => s - 1)} disabled={dispatching} style={{ fontWeight: 700 }}>
                 {wizardStep === 1 ? 'Cancel' : '← Back'}
               </Btn>
               {wizardStep < 5 ? (
-                <Btn variant="primary" onClick={() => setWizardStep(s => s + 1)}>
+                <button
+                  onClick={() => setWizardStep(s => s + 1)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 22px',
+                    borderRadius: 12, background: 'var(--acc)', color: '#FFFFFF',
+                    border: 'none', fontWeight: 800, fontSize: 13.5, cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(230, 95, 43, 0.3)', transition: 'all 0.18s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+                >
                   Next Step →
-                </Btn>
+                </button>
               ) : (
-                <Btn variant="primary" onClick={handlePublishNotification} disabled={dispatching} style={{ gap: 6, fontWeight: 700 }}>
+                <button
+                  onClick={handlePublishNotification}
+                  disabled={dispatching}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 24px',
+                    borderRadius: 12, background: 'var(--acc)', color: '#FFFFFF',
+                    border: 'none', fontWeight: 800, fontSize: 13.5, cursor: 'pointer',
+                    boxShadow: '0 6px 20px rgba(230, 95, 43, 0.35)', opacity: dispatching ? 0.7 : 1
+                  }}
+                >
                   {dispatching ? 'Dispatching...' : '🚀 Confirm & Dispatch'}
-                </Btn>
+                </button>
               )}
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

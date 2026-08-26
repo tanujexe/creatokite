@@ -134,6 +134,7 @@ export default function CampaignDetail() {
             <h3 style={{ fontSize:13, fontWeight:700, marginBottom:12 }}>Campaign Details</h3>
             <div style={{ display:'flex', flexDirection:'column', gap:8, fontSize:12 }}>
               {[['Goal', campaign.campaignGoal],['Audience', campaign.targetAudience],['Budget Type', campaign.budgetType],
+                ['Usage Rights / Ads', campaign.requiresAdsRights ? '⚡ Yes (Ad Rights / Whitelisting)' : 'No'],
                 ['Slots', `${campaign.assignedCreators?.length||0} / ${campaign.totalSlots}`],
                 ['Platforms', (campaign.platforms||[]).join(', ')],
                 ['Deadline', new Date(campaign.deadline).toLocaleDateString('en-IN')],

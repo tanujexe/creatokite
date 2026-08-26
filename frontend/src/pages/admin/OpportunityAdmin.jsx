@@ -26,6 +26,7 @@ export default function OpportunityAdmin() {
     brandName: '',
     category: 'ugc_hiring',
     reward: '',
+    requiresAdsRights: false,
     deadline: '',
     applicationLink: '',
     status: 'published'
@@ -59,6 +60,7 @@ export default function OpportunityAdmin() {
         brandName: opp.brandName || '',
         category: opp.category || 'ugc_hiring',
         reward: opp.reward || '',
+        requiresAdsRights: Boolean(opp.requiresAdsRights),
         deadline: opp.deadline ? opp.deadline.split('T')[0] : '',
         applicationLink: opp.applicationLink || '',
         status: opp.status || 'published'
@@ -72,6 +74,7 @@ export default function OpportunityAdmin() {
         brandName: '',
         category: 'ugc_hiring',
         reward: '',
+        requiresAdsRights: false,
         deadline: '',
         applicationLink: '',
         status: 'published'
@@ -268,6 +271,32 @@ export default function OpportunityAdmin() {
               className="form-input"
               placeholder="https://..."
             />
+          </div>
+
+          <div className="form-group" style={{ margin: '8px 0' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 14px',
+                background: form.requiresAdsRights ? 'rgba(230, 95, 43, 0.08)' : 'var(--s2)',
+                border: form.requiresAdsRights ? '1px solid rgba(230, 95, 43, 0.3)' : '1px solid var(--border)',
+                borderRadius: 8,
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={form.requiresAdsRights}
+                onChange={(e) => setForm({ ...form, requiresAdsRights: e.target.checked })}
+                style={{ width: 16, height: 16, accentColor: '#E65F2B', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>
+                ⚡ Ready for Usage Rights / Ad Rights (Whitelisting) Included
+              </span>
+            </label>
           </div>
 
           <div className="form-group">
