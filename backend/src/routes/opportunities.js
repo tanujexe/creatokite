@@ -47,7 +47,7 @@ router.get('/admin', auth, teamOrAdmin, async (req, res) => {
 /* POST /api/opportunities - Create new opportunity */
 router.post('/', auth, teamOrAdmin, async (req, res) => {
   try {
-    const { title, description, banner, brand, brandName, category, reward, deadline, applicationLink, status } = req.body;
+    const { title, description, banner, brand, brandName, category, reward, requiresAdsRights = false, deadline, applicationLink, status } = req.body;
     if (!title || !applicationLink) {
       return res.status(400).json({ success: false, message: 'Title and application link are required.' });
     }
@@ -60,6 +60,7 @@ router.post('/', auth, teamOrAdmin, async (req, res) => {
       brandName: brandName || '',
       category: category || 'ugc_hiring',
       reward: reward || '',
+      requiresAdsRights: Boolean(requiresAdsRights),
       deadline: deadline ? new Date(deadline) : undefined,
       applicationLink,
       status: status || 'published',

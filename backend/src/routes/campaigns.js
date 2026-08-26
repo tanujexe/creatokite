@@ -229,7 +229,7 @@ router.post('/', auth, async (req, res) => {
     const { title, description, niche, budget=0, deadline, totalSlots=5,
             platforms=[], deliverables=[], tags=[], contentGuidelines='',
             budgetType='fixed', minFollowers=1000, minEngagement=0,
-            isPremium=false, campaignGoal='', targetAudience='', kpiTargets={},
+            isPremium=false, requiresAdsRights=false, campaignGoal='', targetAudience='', kpiTargets={},
             dealType='paid', barterProduct='', barterValue=0, barterDelivery='',
             campaignType='client', categoryType='sponsored', rewardType='paid', rewardDetails={} } = req.body;
     if (!title||!description||!niche||!deadline)
@@ -246,7 +246,7 @@ router.post('/', auth, async (req, res) => {
       title, description, niche, budget: finalBudget, deadline:new Date(deadline),
       totalSlots:+totalSlots, platforms, deliverables, tags, contentGuidelines,
       budgetType, minFollowers:+minFollowers, minEngagement:+minEngagement,
-      isPremium, campaignGoal, targetAudience,
+      isPremium, requiresAdsRights: Boolean(requiresAdsRights), campaignGoal, targetAudience,
       dealType, barterProduct, barterValue: +barterValue || 0, barterDelivery,
       kpiTargets:{ reach:+kpiTargets.reach||0, impressions:+kpiTargets.impressions||0,
                    engagement:+kpiTargets.engagement||0, conversions:+kpiTargets.conversions||0 },
@@ -280,7 +280,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!campaign) return res.status(404).json({ success:false, message:'Not found' });
     if (campaign.brand.toString()!==req.user._id.toString()&&req.user.role!=='admin')
       return res.status(403).json({ success:false, message:'Not authorized' });
-    const allowed = ['title','description','contentGuidelines','deadline','tags','deliverables','targetAudience','campaignGoal'];
+    const allowed = ['title','description','contentGuidelines','deadline','tags','deliverables','targetAudience','campaignGoal','requiresAdsRights'];
     allowed.forEach(k => { if (req.body[k]!==undefined) campaign[k]=req.body[k]; });
     await campaign.save();
     res.json({ success:true, campaign });
