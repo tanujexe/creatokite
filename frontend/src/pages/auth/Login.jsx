@@ -664,7 +664,7 @@ export default function Login() {
           top: 0;
           right: -1px;
           bottom: 0;
-          width: 130px;
+          width: 70px;
           pointer-events: none;
           z-index: 10;
         }
