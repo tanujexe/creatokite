@@ -46,7 +46,7 @@ router.put('/profile', auth, async (req, res) => {
   try {
     const allowed = [
       'displayName', 'bio', 'location', 'website', 'avatar', 'niche', 'subNiches', 'companyName', 'industry', 'platforms',
-      'city', 'avgViews', 'languages', 'isUgcCreator', 'isOnCamera', 'audienceLocation', 'commercialRate',
+      'city', 'avgViews', 'languages', 'isUgcCreator', 'isOnCamera', 'isBarterReady', 'audienceLocation', 'commercialRate',
       'availabilityStatus', 'previousCampaignsCount', 'reliabilityScore', 'onboardingCompleted', 'socialUrls', 'handle'
     ];
     const update = {};

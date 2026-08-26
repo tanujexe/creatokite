@@ -184,6 +184,75 @@ router.put('/users/:id', adminOnly, async (req, res) => {
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
+/* ── POST /api/admin/users/:id/sync-social — admin re-sync creator social data ── */
+router.post('/users/:id/sync-social', adminOnly, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const targetIg = user.socialUrls?.instagram || user.instagramUrl || (user.handle ? `https://instagram.com/${user.handle}` : null);
+    const targetYt = user.socialUrls?.youtube || user.youtubeUrl || null;
+
+    if (!targetIg && !targetYt) {
+      return res.status(400).json({ success: false, message: 'No social profile URL or Instagram handle found for this creator.' });
+    }
+
+    const { fetchSocialData } = require('../services/socialFetcher');
+    const { computeCAS, computeScore, getRank } = require('../services/scoring');
+
+    const { igData, ytData } = await fetchSocialData(targetIg, targetYt);
+
+    if (!igData && !ytData) {
+      return res.status(502).json({ success: false, message: 'Could not fetch live social data. Profile may be private or API limited.' });
+    }
+
+    const casResult = computeCAS({ igData, ytData, niche: user.niche || '' });
+
+    const platformUpdate = {};
+    if (igData) {
+      platformUpdate['platforms.instagram.followers'] = igData.followers;
+      platformUpdate['platforms.instagram.engagement'] = parseFloat((igData.er || 0).toFixed(2));
+      if (igData.avatar) platformUpdate['avatar'] = igData.avatar;
+      if (igData.bio) platformUpdate['bio'] = igData.bio;
+    }
+    if (ytData) {
+      platformUpdate['platforms.youtube.followers'] = ytData.followers;
+      platformUpdate['platforms.youtube.engagement'] = parseFloat((ytData.er || 0).toFixed(2));
+    }
+
+    const userObj = user.toObject();
+    if (igData) {
+      userObj.platforms = userObj.platforms || {};
+      userObj.platforms.instagram = { followers: igData.followers, engagement: igData.er || 0 };
+    }
+    if (ytData) {
+      userObj.platforms = userObj.platforms || {};
+      userObj.platforms.youtube = { followers: ytData.followers, engagement: ytData.er || 0 };
+    }
+
+    const { total, dna } = computeScore(userObj);
+    const rank = getRank(total);
+
+    const updatedUser = await User.findByIdAndUpdate(user._id, {
+      ...platformUpdate,
+      casScore: casResult.cas,
+      casBreakdown: casResult.scores,
+      casRisk: casResult.riskLevel,
+      casBadge: casResult.badge,
+      socialAnalyzed: true,
+      analyzedAt: new Date(),
+      creatorScore: total,
+      dna,
+      rank
+    }, { new: true }).select('-password -refreshToken');
+
+    res.json({ success: true, message: 'Social profile re-synced successfully!', user: updatedUser });
+  } catch (e) {
+    console.error('[Admin Sync Social Error]', e);
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 /* ── Role Promotion — admin only ──────────────────────── */
 router.post('/users/:id/promote', adminOnly, async (req, res) => {
   try {
@@ -518,32 +587,7 @@ router.patch('/creators/:id/reject', adminOnly, async (req, res) => {
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
-/* ══════════════════════════════════════════════════════
-   BROADCAST — admin only
-   ══════════════════════════════════════════════════════ */
-router.post('/broadcast', adminOnly, async (req, res) => {
-  try {
-    const { title, body, link = '', type = 'system', targets } = req.body;
-    let userIds = [];
-    if (targets === 'all') userIds = (await User.find({ isDeleted: { $ne: true } }, '_id')).map(u => u._id);
-    else if (targets === 'creators') userIds = (await User.find({ $or: [{ role: 'creator' }, { roles: 'creator' }], isDeleted: { $ne: true } }, '_id')).map(u => u._id);
-    else if (targets === 'brands') userIds = (await User.find({ $or: [{ role: 'brand' }, { roles: 'brand' }], isDeleted: { $ne: true } }, '_id')).map(u => u._id);
-    else if (targets === 'team') userIds = (await User.find({ $or: [{ role: 'team_member' }, { roles: 'team_member' }], isDeleted: { $ne: true } }, '_id')).map(u => u._id);
-    else if (Array.isArray(targets)) userIds = targets;
-    if (!userIds.length) return res.status(400).json({ success: false, message: 'No target users found' });
-    await Notification.insertMany(userIds.map(uid => ({ user: uid, type, title, body, link })), { ordered: false });
-    const io = req.app.get('io');
-    if (io) userIds.forEach(uid => io.to(`user:${uid}`).emit('notification', { title, body, type, link }));
-    if (req.body.sendEmail) {
-      const emailUsers = await User.find({ _id: { $in: userIds } }).select('email displayName');
-      for (const u of emailUsers) {
-        if (u.email) await sendBroadcastMail(u.email, title, body).catch(() => { });
-      }
-    }
-    await audit(req, 'BROADCAST_SENT', 'notification', { count: userIds.length, targets }, 'medium', null, '');
-    res.json({ success: true, sent: userIds.length });
-  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
-});
+
 
 /* ══════════════════════════════════════════════════════
    TRANSACTIONS — admin only
@@ -841,11 +885,10 @@ router.post('/broadcast', adminOnly, async (req, res) => {
 
     await audit(req, 'NOTIFICATION_BROADCAST', 'notification', { count: userIds.length, title, category }, 'medium', null, `Recipients:${userIds.length}`);
 
-    res.json({ success: true, count: userIds.length, message: `Notification dispatched to ${userIds.length} recipients` });
+    res.json({ success: true, count: userIds.length, sent: userIds.length, message: `Notification dispatched to ${userIds.length} recipients` });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }
 });
 
-module.exports = router;
 module.exports = router;

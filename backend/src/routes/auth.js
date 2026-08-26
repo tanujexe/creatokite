@@ -2,16 +2,49 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const passport = require("passport");
 const { body, validationResult } = require('express-validator');
-const { User, Notification } = require('../models');
+const { User, Campaign, Notification } = require('../models');
 const { auth, setAuthCookies, clearAuthCookies } = require('../middleware/auth');
 const { computeScore, getRank, computeCAS } = require('../services/scoring');
 const { fetchSocialData } = require('../services/socialFetcher');
-const { sendLoginMail, sendResetPasswordMail } = require("../utils/sendEmail");
+const { sendLoginMail, sendResetPasswordMail, sendVerificationMail } = require("../utils/sendEmail");
 const crypto = require('crypto');
 
 const router = express.Router();
 const mkToken = id => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 const mkRefresh = id => jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d' });
+
+/* ── GET /api/auth/public-stats ────────────────────────── */
+router.get('/public-stats', async (req, res) => {
+  try {
+    const creatorCount = await User.countDocuments({ role: 'creator' });
+    const brandCount = await User.countDocuments({ role: 'brand' });
+    const campaignCount = await Campaign.countDocuments({});
+
+    const displayCreators = `${Math.max(200, creatorCount)}+`;
+    const displayBrands = `${Math.max(4, brandCount)}+`;
+    const displayCampaigns = `${Math.max(25, campaignCount)}+`;
+
+    return res.json({
+      success: true,
+      creators: creatorCount,
+      brands: brandCount,
+      campaigns: campaignCount,
+      displayCreators,
+      displayBrands,
+      displayCampaigns,
+    });
+  } catch (err) {
+    return res.json({
+      success: true,
+      creators: 200,
+      brands: 4,
+      campaigns: 25,
+      displayCreators: '200+',
+      displayBrands: '4+',
+      displayCampaigns: '25+',
+    });
+  }
+});
 
 /* ── POST /api/auth/forgot-password ─────────────────────── */
 router.post('/forgot-password', [
@@ -37,7 +70,7 @@ router.post('/forgot-password', [
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 mins
     await user.save({ validateBeforeSave: false });
 
-    // Send email via Nodemailer Gmail SMTP
+    // Send email via Resend / Nodemailer
     const emailSent = await sendResetPasswordMail(user.email, otpCode);
     console.log(`\n========================================`);
     console.log(`[FORGOT PASSWORD OTP CODE] Email: ${user.email} | OTP: ${otpCode}`);
@@ -47,8 +80,7 @@ router.post('/forgot-password', [
       success: true,
       message: emailSent
         ? 'Password reset code has been sent to your registered email address.'
-        : `Password reset code generated: ${otpCode} (SMTP skipped in local environment)`,
-      otp: process.env.NODE_ENV !== 'production' ? otpCode : undefined
+        : 'Password reset code generated and sent to email.'
     });
   } catch (error) {
     console.error('Forgot Password Error:', error);
@@ -109,6 +141,44 @@ const sendAuth = (res, statusCode, user, token, refresh, extra = {}) => {
   });
 };
 
+/* ── POST /api/auth/validate-instagram ────────────────── */
+router.post('/validate-instagram', async (req, res) => {
+  try {
+    const { handle, instagramUrl } = req.body;
+    const target = instagramUrl || handle;
+    if (!target || !target.trim()) {
+      return res.status(400).json({ success: false, valid: false, message: 'Instagram handle or profile URL is required.' });
+    }
+
+    const { igData } = await fetchSocialData(target, null);
+    if (!igData || igData._isEstimated || !igData.isReal) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        message: `Invalid Instagram ID: We could not verify "${target}" on Instagram. Please check for typos and enter your correct public Instagram handle or URL.`
+      });
+    }
+
+    return res.json({
+      success: true,
+      valid: true,
+      data: {
+        username: igData.username,
+        fullName: igData.fullName,
+        followers: igData.followers,
+        profilePic: igData.profilePic,
+        isVerified: igData.isVerified
+      }
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      valid: false,
+      message: 'Failed to verify Instagram account. Please check the handle and try again.'
+    });
+  }
+});
+
 /* ── POST /api/auth/register ────────────────────────────── */
 router.post('/register', [
   body('displayName').trim().notEmpty().withMessage('Full Name is required').isLength({ min: 2, max: 60 }).withMessage('Full Name must be 2 to 60 characters'),
@@ -125,22 +195,69 @@ router.post('/register', [
     }
 
     const {
-      displayName, email, password, role = 'creator',
+      displayName, email, phone = '', password, role = 'creator',
       niche = '', subNiches = [], companyName = '', handle = '',
       instagramUrl = '', youtubeUrl = '',
     } = req.body;
 
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Valid email address is required for registration.' });
+    }
+
     if (await User.findOne({ email }))
-      return res.status(409).json({ success: false, message: 'Email already registered.' });
-    // If handle is already taken, just ignore it — don't block registration
-    const handleAvailable = handle ? !(await User.findOne({ handle: handle.toLowerCase() })) : false;
+      return res.status(409).json({ success: false, message: 'Email address is already registered.' });
+
+    let verifiedIgData = null;
+    let verifiedYtData = null;
+
+    // Strict Creator Instagram Requirement & Live Account Validation
+    if (role === 'creator') {
+      const targetIg = instagramUrl || handle;
+      if (!targetIg || !targetIg.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Instagram handle or profile URL is required to register as a creator.'
+        });
+      }
+
+      console.log(`[Register Verification] Live verifying IG handle "${targetIg}"...`);
+      const { igData, ytData } = await fetchSocialData(targetIg, youtubeUrl || null);
+      if (!igData || igData._isEstimated || !igData.isReal) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid Instagram ID: We could not verify "${targetIg}" on Instagram. Please check for typos and enter your correct public Instagram handle or URL.`
+        });
+      }
+      verifiedIgData = igData;
+      verifiedYtData = ytData;
+    }
+
+    // If handle is already taken, check uniqueness
+    const cleanHandle = handle ? (handle.startsWith('@') ? handle.slice(1).toLowerCase() : handle.toLowerCase()) : (verifiedIgData?.username ? verifiedIgData.username.toLowerCase() : undefined);
+
+    if (role === 'creator' && cleanHandle) {
+      const existingHandleUser = await User.findOne({ handle: cleanHandle });
+      if (existingHandleUser) {
+        return res.status(409).json({
+          success: false,
+          message: `This Instagram handle (@${cleanHandle}) is already registered to another creator account.`
+        });
+      }
+    }
+
+    // Generate Email Verification Token (24h validity)
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
 
     const user = new User({
-      displayName, email, password, role,
+      displayName, email, phone: phone.trim(), password, role,
       niche: role === 'creator' ? niche : '',
       subNiches: role === 'creator' ? (Array.isArray(subNiches) ? subNiches : []) : [],
       companyName: role === 'brand' ? (companyName || displayName) : '',
-      handle: (handle && handleAvailable) ? handle.toLowerCase() : undefined,
+      handle: cleanHandle,
+      emailVerified: false,
+      emailVerifyToken: verificationTokenHash,
+      emailVerificationExpires: Date.now() + 24 * 60 * 60 * 1000,
     });
 
     if (role === 'creator') {
@@ -152,48 +269,126 @@ router.post('/register', [
     user.refreshToken = refresh;
     await user.save();
 
+    // Dispatch verification mail via Resend / Nodemailer
+    await sendVerificationMail(user.email, user.displayName, verificationToken).catch(e => console.error('[Register Verify Mail Error]', e.message));
+
     let socialResult = null;
-    if (role === 'creator' && (instagramUrl || youtubeUrl)) {
+    if (role === 'creator' && verifiedIgData) {
       try {
-        const { igData, ytData } = await fetchSocialData(instagramUrl || null, youtubeUrl || null);
-        if (igData || ytData) {
-          const casResult = computeCAS({ igData, ytData, niche });
-          const platformUpdate = {};
-          if (igData) { platformUpdate['platforms.instagram.followers'] = igData.followers; platformUpdate['platforms.instagram.engagement'] = igData.er || 0; }
-          if (ytData) { platformUpdate['platforms.youtube.followers'] = ytData.subscribers || ytData.followers; platformUpdate['platforms.youtube.engagement'] = ytData.er || 0; }
-          const userCopy = user.toObject();
-          if (igData) { userCopy.platforms.instagram.followers = igData.followers; userCopy.platforms.instagram.engagement = igData.er || 0; }
-          if (ytData) { userCopy.platforms.youtube.followers = ytData.subscribers || ytData.followers; userCopy.platforms.youtube.engagement = ytData.er || 0; }
-          const { total: newTotal, dna: newDna } = computeScore(userCopy);
-          await User.findByIdAndUpdate(user._id, {
-            ...platformUpdate,
-            'socialUrls.instagram': instagramUrl,
-            'socialUrls.youtube': youtubeUrl,
-            casScore: casResult.cas, casBreakdown: casResult.scores,
-            casRisk: casResult.riskLevel, casBadge: casResult.badge,
-            socialAnalyzed: true, analyzedAt: new Date(),
-            verificationStatus: casResult.autoApprove ? 'approved' : 'pending',
-            isVerified: casResult.autoApprove, creatorScore: newTotal, dna: newDna, rank: getRank(newTotal),
-          });
-          if (!casResult.autoApprove) {
-            const admins = await User.find({ role: 'admin' }).select('_id');
-            await Promise.all(admins.map(a =>
-              Notification.create({
-                user: a._id, type: 'creator_approval',
-                title: '🆕 New Creator Needs Approval',
-                body: `${displayName} registered. CAS: ${casResult.cas}/100`,
-                link: '/admin/creator-approval'
-              }).catch(() => { })
-            ));
-          }
-          socialResult = { cas: casResult.cas, badge: casResult.badge, riskLevel: casResult.riskLevel, autoApprove: casResult.autoApprove };
+        const casResult = computeCAS({ igData: verifiedIgData, ytData: verifiedYtData, niche });
+        const platformUpdate = {};
+        if (verifiedIgData) { platformUpdate['platforms.instagram.followers'] = verifiedIgData.followers; platformUpdate['platforms.instagram.engagement'] = verifiedIgData.er || 0; }
+        if (verifiedYtData) { platformUpdate['platforms.youtube.followers'] = verifiedYtData.subscribers || verifiedYtData.followers; platformUpdate['platforms.youtube.engagement'] = verifiedYtData.er || 0; }
+        
+        const userCopy = user.toObject();
+        if (!userCopy.platforms) userCopy.platforms = {};
+        if (!userCopy.platforms.instagram) userCopy.platforms.instagram = { followers: 0, engagement: 0 };
+        if (!userCopy.platforms.youtube) userCopy.platforms.youtube = { followers: 0, engagement: 0 };
+
+        if (verifiedIgData) { userCopy.platforms.instagram.followers = verifiedIgData.followers; userCopy.platforms.instagram.engagement = verifiedIgData.er || 0; }
+        if (verifiedYtData) { userCopy.platforms.youtube.followers = verifiedYtData.subscribers || verifiedYtData.followers; userCopy.platforms.youtube.engagement = verifiedYtData.er || 0; }
+        const { total: newTotal, dna: newDna } = computeScore(userCopy);
+
+        await User.findByIdAndUpdate(user._id, {
+          ...platformUpdate,
+          'socialUrls.instagram': instagramUrl || verifiedIgData.username,
+          'socialUrls.youtube': youtubeUrl,
+          casScore: casResult.cas, casBreakdown: casResult.scores,
+          casRisk: casResult.riskLevel, casBadge: casResult.badge,
+          socialAnalyzed: true, analyzedAt: new Date(),
+          verificationStatus: casResult.autoApprove ? 'approved' : 'pending',
+          isVerified: casResult.autoApprove, creatorScore: newTotal, dna: newDna, rank: getRank(newTotal),
+        });
+        if (!casResult.autoApprove) {
+          const admins = await User.find({ role: 'admin' }).select('_id');
+          await Promise.all(admins.map(a =>
+            Notification.create({
+              user: a._id, type: 'creator_approval',
+              title: '🆕 New Creator Needs Approval',
+              body: `${displayName} registered. CAS: ${casResult.cas}/100`,
+              link: '/admin/creator-approval'
+            }).catch(() => { })
+          ));
         }
-      } catch (e) { console.error('[Register social]', e.message); }
+        socialResult = { cas: casResult.cas, badge: casResult.badge, riskLevel: casResult.riskLevel, autoApprove: casResult.autoApprove, igData: verifiedIgData, ytData: verifiedYtData };
+      } catch (e) { console.error('[Register social]', e.message || e); }
     }
 
     const finalUser = await User.findById(user._id).select('-password -refreshToken');
     return sendAuth(res, 201, finalUser, token, refresh, { socialResult });
-  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+  } catch (e) {
+    if (e.code === 11000 || (e.message && e.message.includes('E11000'))) {
+      const key = Object.keys(e.keyPattern || {})[0] || 'handle';
+      const msg = key === 'handle'
+        ? 'This Instagram handle is already registered to another creator account.'
+        : key === 'email'
+        ? 'This email address is already registered on CreatoKite.'
+        : 'An account with these details already exists.';
+      return res.status(409).json({ success: false, message: msg });
+    }
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+/* ── GET /api/auth/verify-email ─────────────────────────── */
+router.get('/verify-email', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ success: false, message: 'Verification token is required.' });
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      emailVerifyToken: tokenHash,
+      emailVerificationExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired verification token.' });
+    }
+
+    user.emailVerified = true;
+    user.emailVerifyToken = '';
+    user.emailVerificationExpires = undefined;
+    await user.save();
+
+    return res.json({ success: true, message: 'Your email address has been successfully verified!' });
+  } catch (error) {
+    console.error('Verify Email Error:', error);
+    return res.status(500).json({ success: false, message: 'Server error during email verification.' });
+  }
+});
+
+/* ── POST /api/auth/resend-verification ──────────────────── */
+router.post('/resend-verification', [
+  body('email').isEmail().normalizeEmail(),
+], async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.json({ success: true, message: 'If an account exists, a verification link has been sent.' });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({ success: false, message: 'This email address is already verified.' });
+    }
+
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
+    user.emailVerifyToken = verificationTokenHash;
+    user.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    await sendVerificationMail(user.email, user.displayName, verificationToken);
+
+    return res.json({ success: true, message: 'Verification email sent successfully!' });
+  } catch (error) {
+    console.error('Resend Verification Error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to send verification email.' });
+  }
 });
 
 /* ── POST /api/auth/login ───────────────────────────────── */
@@ -222,7 +417,7 @@ router.post('/login', [
     const token = mkToken(user._id), refresh = mkRefresh(user._id);
     user.refreshToken = refresh;
     await user.save({ validateBeforeSave: false });
-    await sendLoginMail(user.email);
+    sendLoginMail(user.email).catch(err => console.error('[Login Email Error]', err.message));
 
     return sendAuth(res, 200, user, token, refresh);
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }

@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
   displayName: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  phone: { type: String, default: '', trim: true },
   password: { type: String, default: '' },
 
   /* V1 compat */
@@ -26,8 +27,9 @@ const userSchema = new mongoose.Schema({
   refreshToken: { type: String, default: '' },
   niche: { type: String, default: '' },
   subNiches: [String],
-  emailVerified: { type: Boolean, default: true },
+  emailVerified: { type: Boolean, default: false },
   emailVerifyToken: { type: String, default: '' },
+  emailVerificationExpires: { type: Date },
   resetPasswordToken: { type: String, default: '' },
   resetPasswordExpires: { type: Date },
   provider: { type: String, default: 'local' },
@@ -38,6 +40,7 @@ const userSchema = new mongoose.Schema({
   languages: { type: [String], default: ['English'] },
   isUgcCreator: { type: Boolean, default: false },
   isOnCamera: { type: Boolean, default: true },
+  isBarterReady: { type: Boolean, default: true },
   audienceLocation: { type: String, default: 'India' },
   commercialRate: { type: Number, default: 0 },
   availabilityStatus: { type: String, enum: ['Available', 'Busy', 'On Leave'], default: 'Available' },

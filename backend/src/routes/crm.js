@@ -8,7 +8,7 @@ router.use(auth, teamOrAdmin);
 /* ══ Creator CRM ══════════════════════════════════════════ */
 router.get('/creators', async (req,res) => {
   try {
-    const { status, assignedTo, search, availability, niche, city, minFollowers, maxFollowers, page=1, limit=50, sort='newest' } = req.query;
+    const { status, assignedTo, search, availability, niche, city, minFollowers, maxFollowers, isBarterReady, page=1, limit=50, sort='newest' } = req.query;
     const q = { $or:[{role:'creator'},{roles:'creator'}], isDeleted:{$ne:true} };
 
     if (status)       q.crmStatus    = status;
@@ -16,6 +16,7 @@ router.get('/creators', async (req,res) => {
     if (assignedTo)   q.assignedTeamMember = assignedTo;
     if (niche)        q.niche        = niche;
     if (city)         q.$or          = [{ city: { $regex: city, $options: 'i' } }, { location: { $regex: city, $options: 'i' } }];
+    if (isBarterReady !== undefined && isBarterReady !== '') q.isBarterReady = isBarterReady === 'true';
 
     if (minFollowers || maxFollowers) {
       q['platforms.instagram.followers'] = {};
@@ -49,6 +50,72 @@ router.get('/creators', async (req,res) => {
     ]);
     res.json({ success:true, creators, total, pages:Math.ceil(total/+limit) });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+/* GET /api/crm/creators/export-excel — Export Creator details to CSV/Excel */
+router.get('/creators/export-excel', async (req, res) => {
+  try {
+    const { status, search, niche, availability, isBarterReady } = req.query;
+    const q = { $or: [{ role: 'creator' }, { roles: 'creator' }], isDeleted: { $ne: true } };
+
+    if (status) q.crmStatus = status;
+    if (availability) q.availability = availability;
+    if (niche) q.niche = niche;
+    if (isBarterReady !== undefined && isBarterReady !== '') q.isBarterReady = isBarterReady === 'true';
+
+    if (search) {
+      const searchRegex = { $regex: search, $options: 'i' };
+      q.$and = [
+        { $or: [{ role: 'creator' }, { roles: 'creator' }] },
+        { $or: [{ displayName: searchRegex }, { email: searchRegex }, { phone: searchRegex }, { handle: searchRegex }, { niche: searchRegex }] }
+      ];
+    }
+
+    const creators = await User.find(q).populate('assignedTeamMember', 'displayName email').sort({ createdAt: -1 });
+
+    const headers = [
+      'Creator ID', 'Full Name', 'Email', 'Phone Number', 'Instagram Handle',
+      'Instagram Profile URL', 'Primary Niche', 'All Selected Niches', 'City / Location',
+      'Followers', 'Avg Views', 'Commercial Rate (INR)', 'Barter Deals Ready', 'CAS Score', 'Pipeline Status',
+      'Availability', 'Assigned Team Member', 'Created Date'
+    ];
+
+    const escapeCsv = (str) => {
+      if (str === null || str === undefined) return '""';
+      const clean = String(str).replace(/"/g, '""');
+      return `"${clean}"`;
+    };
+
+    const rows = creators.map(c => [
+      escapeCsv(c._id),
+      escapeCsv(c.displayName),
+      escapeCsv(c.email),
+      escapeCsv(c.phone || '—'),
+      escapeCsv(c.handle ? `@${c.handle}` : '—'),
+      escapeCsv(c.socialUrls?.instagram || (c.handle ? `https://instagram.com/${c.handle}` : '—')),
+      escapeCsv(c.niche || '—'),
+      escapeCsv(c.subNiches?.length ? c.subNiches.join('; ') : (c.niche || '—')),
+      escapeCsv(c.city || c.location || '—'),
+      c.platforms?.instagram?.followers || c.followers || 0,
+      c.avgViews || 0,
+      c.commercialRate || 0,
+      escapeCsv(c.isBarterReady !== false ? 'Yes' : 'No'),
+      c.casScore || 0,
+      escapeCsv(c.crmStatus || 'Lead'),
+      escapeCsv(c.availability || 'Available'),
+      escapeCsv(c.assignedTeamMember?.displayName || 'Unassigned'),
+      escapeCsv(new Date(c.createdAt).toLocaleDateString('en-IN'))
+    ].join(','));
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=creators_export_${Date.now()}.csv`);
+    return res.status(200).send(csvContent);
+  } catch (e) {
+    console.error('Export Creators Excel Error:', e);
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 router.put('/creators/:id', async (req,res) => {

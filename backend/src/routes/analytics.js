@@ -37,26 +37,78 @@ router.get('/brand', async (req, res) => {
 /* ── GET /api/analytics/creator ─────────────────────── */
 router.get('/creator', async (req, res) => {
   try {
-    if (req.user.role!=='creator') return res.status(403).json({ success:false, message:'Creators only' });
-    const campaigns = await Campaign.find({ 'assignedCreators.creator':req.user._id });
-    const myData = campaigns.map(c=>({
-      title:c.title, niche:c.niche, budget:c.budget, workflowStatus:c.workflowStatus,
-      assignment:c.assignedCreators.find(a=>a.creator?.toString()===req.user._id.toString()),
+    if (req.user.role !== 'creator') return res.status(403).json({ success: false, message: 'Creators only' });
+    const campaigns = await Campaign.find({ 'assignedCreators.creator': req.user._id });
+    const myData = campaigns.map(c => ({
+      title: c.title, niche: c.niche, budget: c.budget, workflowStatus: c.workflowStatus,
+      createdAt: c.createdAt,
+      assignment: c.assignedCreators.find(a => a.creator?.toString() === req.user._id.toString()),
     }));
-    const completed = myData.filter(c=>['approved','completed'].includes(c.assignment?.status));
-    const earned = completed.reduce((s,c)=>s+(c.assignment?.paymentAlloc||0),0);
-    const pending = myData.filter(c=>['assigned','accepted','in_progress','submitted'].includes(c.assignment?.status));
+    const completed = myData.filter(c => ['approved', 'completed'].includes(c.assignment?.status));
+    const earned = completed.reduce((s, c) => s + (c.assignment?.paymentAlloc || 0), 0);
+    const pending = myData.filter(c => ['assigned', 'accepted', 'in_progress', 'submitted'].includes(c.assignment?.status));
+
+    // Live Month-over-Month Trend Calculations
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    const thisMonthCampaigns = campaigns.filter(c => new Date(c.createdAt) >= startOfThisMonth).length;
+    const lastMonthCampaigns = campaigns.filter(c => {
+      const d = new Date(c.createdAt);
+      return d >= startOfLastMonth && d < startOfThisMonth;
+    }).length;
+    const totalTrendPct = lastMonthCampaigns > 0
+      ? Math.round(((thisMonthCampaigns - lastMonthCampaigns) / lastMonthCampaigns) * 100)
+      : (thisMonthCampaigns > 0 ? 100 : 0);
+
+    const completedThisMonth = myData.filter(c => ['approved', 'completed'].includes(c.assignment?.status) && new Date(c.assignment?.updatedAt || c.createdAt) >= startOfThisMonth).length;
+    const completedLastMonth = myData.filter(c => {
+      const status = c.assignment?.status;
+      const d = new Date(c.assignment?.updatedAt || c.createdAt);
+      return ['approved', 'completed'].includes(status) && d >= startOfLastMonth && d < startOfThisMonth;
+    }).length;
+    const completedTrendPct = completedLastMonth > 0
+      ? Math.round(((completedThisMonth - completedLastMonth) / completedLastMonth) * 100)
+      : (completedThisMonth > 0 ? 100 : 0);
+
+    const earnedThisMonth = myData
+      .filter(c => ['approved', 'completed'].includes(c.assignment?.status) && new Date(c.assignment?.updatedAt || c.createdAt) >= startOfThisMonth)
+      .reduce((s, c) => s + (c.assignment?.paymentAlloc || 0), 0);
+    const earnedLastMonth = myData
+      .filter(c => {
+        const status = c.assignment?.status;
+        const d = new Date(c.assignment?.updatedAt || c.createdAt);
+        return ['approved', 'completed'].includes(status) && d >= startOfLastMonth && d < startOfThisMonth;
+      })
+      .reduce((s, c) => s + (c.assignment?.paymentAlloc || 0), 0);
+    const earnedTrendPct = earnedLastMonth > 0
+      ? Math.round(((earnedThisMonth - earnedLastMonth) / earnedLastMonth) * 100)
+      : (earnedThisMonth > 0 ? 100 : 0);
+
     const trend = [];
-    for (let i=5;i>=0;i--) {
-      const d=new Date(); d.setMonth(d.getMonth()-i);
-      const m=d.toLocaleString('default',{month:'short'});
-      const count=campaigns.filter(c=>{const cd=new Date(c.createdAt);return cd.getMonth()===d.getMonth()&&cd.getFullYear()===d.getFullYear();}).length;
-      trend.push({ month:m, assignments:count });
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(); d.setMonth(d.getMonth() - i);
+      const m = d.toLocaleString('default', { month: 'short' });
+      const count = campaigns.filter(c => { const cd = new Date(c.createdAt); return cd.getMonth() === d.getMonth() && cd.getFullYear() === d.getFullYear(); }).length;
+      trend.push({ month: m, assignments: count });
     }
-    res.json({ success:true, stats:{ total:campaigns.length, completed:completed.length,
-      pending:pending.length, earned, successRate:campaigns.length?Math.round((completed.length/campaigns.length)*100):100 },
-      campaigns:myData, trend });
-  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+    res.json({
+      success: true,
+      stats: {
+        total: campaigns.length,
+        completed: completed.length,
+        pending: pending.length,
+        earned,
+        successRate: campaigns.length ? Math.round((completed.length / campaigns.length) * 100) : 100,
+        totalTrendPct,
+        completedTrendPct,
+        earnedTrendPct
+      },
+      campaigns: myData,
+      trend
+    });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
 /* ── POST /api/analytics/creator/connect ─────────────── */
@@ -66,9 +118,13 @@ router.post('/creator/connect', async (req, res) => {
     if (req.user.role!=='creator')
       return res.status(403).json({ success:false, message:'Creators only' });
 
-    const { instagramUrl='', youtubeUrl='' } = req.body;
+    let { instagramUrl='', youtubeUrl='' } = req.body;
+    if (!instagramUrl && !youtubeUrl) {
+      instagramUrl = req.user.socialUrls?.instagram || (req.user.handle ? `https://instagram.com/${req.user.handle}` : '');
+      youtubeUrl = req.user.socialUrls?.youtube || '';
+    }
     if (!instagramUrl && !youtubeUrl)
-      return res.status(400).json({ success:false, message:'Provide at least one social URL.' });
+      return res.status(400).json({ success:false, message:'Provide at least one social URL or Instagram handle.' });
 
     // 1. Fetch live social data
     const { igData, ytData } = await fetchSocialData(instagramUrl||null, youtubeUrl||null);
