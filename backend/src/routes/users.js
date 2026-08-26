@@ -45,7 +45,7 @@ router.get('/profile', auth, async (req, res) => {
 router.put('/profile', auth, async (req, res) => {
   try {
     const allowed = [
-      'displayName', 'bio', 'location', 'website', 'avatar', 'niche', 'subNiches', 'companyName', 'industry', 'platforms',
+      'displayName', 'phone', 'bio', 'location', 'website', 'avatar', 'niche', 'subNiches', 'companyName', 'industry', 'platforms',
       'city', 'avgViews', 'languages', 'isUgcCreator', 'isOnCamera', 'isBarterReady', 'audienceLocation', 'commercialRate',
       'availabilityStatus', 'previousCampaignsCount', 'reliabilityScore', 'onboardingCompleted', 'socialUrls', 'handle'
     ];

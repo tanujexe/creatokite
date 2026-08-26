@@ -126,6 +126,25 @@ router.post('/creator/connect', async (req, res) => {
     if (!instagramUrl && !youtubeUrl)
       return res.status(400).json({ success:false, message:'Provide at least one social URL or Instagram handle.' });
 
+    // 0. Enforce 30-day re-fetch limit for non-admin users
+    const isSystemAdmin = req.user.role === 'admin' || req.user.role === 'superadmin' || (req.user.roles && (req.user.roles.includes('admin') || req.user.roles.includes('superadmin')));
+    const lastFetch = req.user.lastSocialRefetchAt || req.user.analyzedAt;
+
+    if (!isSystemAdmin && lastFetch) {
+      const now = new Date();
+      const timeDiffMs = now.getTime() - new Date(lastFetch).getTime();
+      const daysPassed = timeDiffMs / (1000 * 60 * 60 * 24);
+      if (daysPassed < 30) {
+        const daysRemaining = Math.ceil(30 - daysPassed);
+        return res.status(429).json({
+          success: false,
+          code: 'REFETCH_COOLDOWN_ACTIVE',
+          daysRemaining,
+          message: `Instagram profile re-fetch can only be performed once every 30 days. You can re-fetch again in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}.`
+        });
+      }
+    }
+
     // 1. Fetch live social data
     const { igData, ytData } = await fetchSocialData(instagramUrl||null, youtubeUrl||null);
     if (!igData && !ytData)
@@ -165,7 +184,8 @@ router.post('/creator/connect', async (req, res) => {
       casRisk:       casResult.riskLevel,
       casBadge:      casResult.badge,
       socialAnalyzed:true,
-      analyzedAt:    new Date(),
+      analyzedAt:          new Date(),
+      lastSocialRefetchAt: new Date(),
       // Auto-approve elite creators; otherwise set to pending
       verificationStatus: casResult.autoApprove ? 'approved' : 'pending',
       isVerified:    casResult.autoApprove ? true : req.user.isVerified,
@@ -210,7 +230,7 @@ router.post('/creator/connect', async (req, res) => {
 router.get('/creator/cas', async (req, res) => {
   try {
     if (req.user.role!=='creator') return res.status(403).json({ success:false, message:'Creators only' });
-    const user = await User.findById(req.user._id).select('casScore casBreakdown casRisk casBadge socialAnalyzed analyzedAt verificationStatus socialUrls creatorScore rank platforms');
+    const user = await User.findById(req.user._id).select('casScore casBreakdown casRisk casBadge socialAnalyzed analyzedAt lastSocialRefetchAt verificationStatus socialUrls creatorScore rank platforms');
     return res.json({ success:true, ...user.toObject() });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });

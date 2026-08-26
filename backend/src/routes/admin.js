@@ -253,6 +253,103 @@ router.post('/users/:id/sync-social', adminOnly, async (req, res) => {
   }
 });
 
+/* ── POST /api/admin/users/bulk-sync-social — admin re-sync ALL creators in bulk ── */
+router.post('/users/bulk-sync-social', adminOnly, async (req, res) => {
+  try {
+    const { fetchSocialData } = require('../services/socialFetcher');
+    const { computeCAS, computeScore, getRank } = require('../services/scoring');
+
+    // Find all active creators with a social URL or handle
+    const creators = await User.find({
+      role: 'creator',
+      isBanned: false,
+      $or: [
+        { handle: { $exists: true, $ne: '' } },
+        { 'socialUrls.instagram': { $exists: true, $ne: '' } },
+        { instagramUrl: { $exists: true, $ne: '' } }
+      ]
+    });
+
+    if (!creators || creators.length === 0) {
+      return res.status(404).json({ success: false, message: 'No eligible creator accounts found for bulk sync.' });
+    }
+
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (const user of creators) {
+      try {
+        const targetIg = user.socialUrls?.instagram || user.instagramUrl || (user.handle ? `https://instagram.com/${user.handle}` : null);
+        const targetYt = user.socialUrls?.youtube || user.youtubeUrl || null;
+        if (!targetIg && !targetYt) continue;
+
+        const { igData, ytData } = await fetchSocialData(targetIg, targetYt);
+        if (!igData && !ytData) {
+          failedCount++;
+          continue;
+        }
+
+        const casResult = computeCAS({ igData, ytData, niche: user.niche || '' });
+
+        const platformUpdate = {};
+        if (igData) {
+          platformUpdate['platforms.instagram.followers'] = igData.followers;
+          platformUpdate['platforms.instagram.engagement'] = parseFloat((igData.er || 0).toFixed(2));
+          if (igData.avatar) platformUpdate['avatar'] = igData.avatar;
+          if (igData.bio) platformUpdate['bio'] = igData.bio;
+        }
+        if (ytData) {
+          platformUpdate['platforms.youtube.followers'] = ytData.followers;
+          platformUpdate['platforms.youtube.engagement'] = parseFloat((ytData.er || 0).toFixed(2));
+        }
+
+        const userObj = user.toObject();
+        if (igData) {
+          userObj.platforms = userObj.platforms || {};
+          userObj.platforms.instagram = { followers: igData.followers, engagement: igData.er || 0 };
+        }
+        if (ytData) {
+          userObj.platforms = userObj.platforms || {};
+          userObj.platforms.youtube = { followers: ytData.followers, engagement: ytData.er || 0 };
+        }
+
+        const { total, dna } = computeScore(userObj);
+        const rank = getRank(total);
+
+        await User.findByIdAndUpdate(user._id, {
+          ...platformUpdate,
+          casScore: casResult.cas,
+          casBreakdown: casResult.scores,
+          casRisk: casResult.riskLevel,
+          casBadge: casResult.badge,
+          socialAnalyzed: true,
+          analyzedAt: new Date(),
+          lastSocialRefetchAt: new Date(),
+          creatorScore: total,
+          dna,
+          rank
+        });
+
+        successCount++;
+      } catch (err) {
+        console.error(`[BulkSync Error for user ${user._id}]:`, err.message);
+        failedCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Bulk re-sync finished! Updated ${successCount} creator profile${successCount === 1 ? '' : 's'}.${failedCount > 0 ? ` (${failedCount} skipped/failed)` : ''}`,
+      successCount,
+      failedCount,
+      totalProcessed: creators.length
+    });
+  } catch (e) {
+    console.error('[BulkSync Fatal Error]:', e);
+    res.status(500).json({ success: false, message: e.message || 'Bulk sync failed.' });
+  }
+});
+
 /* ── Role Promotion — admin only ──────────────────────── */
 router.post('/users/:id/promote', adminOnly, async (req, res) => {
   try {

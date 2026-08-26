@@ -125,28 +125,60 @@ export default function AdminCreatorApproval() {
     finally { setActing(p => ({ ...p, [id]: false })); }
   };
 
+  const [bulkSyncing, setBulkSyncing] = useState(false);
+
+  const handleBulkSync = async () => {
+    if (!window.confirm("⚡ Are you sure you want to bulk re-sync live Instagram & social metrics for ALL active creators?")) return;
+    setBulkSyncing(true);
+    try {
+      const data = await adminAPI.bulkSyncSocial();
+      toast.success(data.message || `Bulk sync finished! Updated ${data.successCount} creators.`);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Bulk sync failed.');
+    } finally {
+      setBulkSyncing(false);
+    }
+  };
+
   return (
     <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg,rgba(108,99,255,0.1),rgba(0,217,255,0.04))',
-        border: '1px solid rgba(108,99,255,0.2)', borderRadius: 16, padding: '20px 24px'
+        border: '1px solid rgba(108,99,255,0.2)', borderRadius: 16, padding: '20px 24px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <span style={{ fontSize: 20 }}>🤖</span>
-          <h2 style={{ fontFamily: 'var(--fd)', fontWeight: 800, fontSize: 18 }}>Creator AI Approval Center</h2>
-          {stats?.pending > 0 && (
-            <span style={{
-              fontSize: 10, padding: '2px 8px', borderRadius: 4,
-              background: 'rgba(245,166,35,0.15)', color: 'var(--gold)', border: '1px solid rgba(245,166,35,0.25)', fontWeight: 700
-            }}>
-              {stats.pending} PENDING
-            </span>
-          )}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <span style={{ fontSize: 20 }}>🤖</span>
+            <h2 style={{ fontFamily: 'var(--fd)', fontWeight: 800, fontSize: 18 }}>Creator AI Approval Center</h2>
+            {stats?.pending > 0 && (
+              <span style={{
+                fontSize: 10, padding: '2px 8px', borderRadius: 4,
+                background: 'rgba(245,166,35,0.15)', color: 'var(--gold)', border: '1px solid rgba(245,166,35,0.25)', fontWeight: 700
+              }}>
+                {stats.pending} PENDING
+              </span>
+            )}
+          </div>
+          <p style={{ color: 'var(--t2)', fontSize: 13, margin: 0 }}>
+            AI auto-analyzes each creator's social profiles. You only approve or reject.
+          </p>
         </div>
-        <p style={{ color: 'var(--t2)', fontSize: 13 }}>
-          AI auto-analyzes each creator's social profiles. You only approve or reject.
-        </p>
+        <button
+          onClick={handleBulkSync}
+          disabled={bulkSyncing}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px',
+            borderRadius: 10, background: bulkSyncing ? 'var(--s2)' : 'linear-gradient(135deg, #FF7A3D 0%, #E65F2B 100%)',
+            color: '#FFF', border: 'none', fontWeight: 700, fontSize: 12.5, cursor: bulkSyncing ? 'not-allowed' : 'pointer',
+            boxShadow: '0 4px 14px rgba(230,95,43,0.3)', transition: 'all 0.15s'
+          }}
+        >
+          <RefreshCw size={14} style={bulkSyncing ? { animation: 'spin 1s linear infinite' } : {}} />
+          {bulkSyncing ? 'Bulk Re-syncing All Creators…' : '⚡ Bulk Sync All Creator Profiles'}
+        </button>
       </div>
 
       {/* Stats row */}

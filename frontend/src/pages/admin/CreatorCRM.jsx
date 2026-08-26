@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Users2, Search, Calendar, Clock, Download, Instagram, ExternalLink, RefreshCw, Mail } from 'lucide-react';
-import { crmAPI, workspaceAPI } from '../../api';
+import { crmAPI, workspaceAPI, adminAPI } from '../../api';
 import { Avatar, Modal, EmptyState, PageLoader, TrustScore, getInstagramLink, getYouTubeLink, GmailIcon, InstagramIcon } from '../../components/ui';
 import toast from 'react-hot-toast';
 
@@ -60,28 +60,36 @@ export default function CreatorCRM() {
   };
 
   const [syncingSocial, setSyncingSocial] = useState(false);
+  const [bulkSyncing, setBulkSyncing] = useState(false);
+
+  const handleBulkSyncSocial = async () => {
+    if (!window.confirm("⚡ Are you sure you want to bulk re-sync live Instagram & social metrics for ALL active creators? This will update follower counts, engagement rates, and CAS scores across all IDs.")) return;
+
+    setBulkSyncing(true);
+    try {
+      const data = await adminAPI.bulkSyncSocial();
+      toast.success(data.message || `Bulk sync finished! Updated ${data.successCount} creators.`);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Bulk sync failed.');
+    } finally {
+      setBulkSyncing(false);
+    }
+  };
 
   const handleSyncCreatorSocial = async (creatorId) => {
     setSyncingSocial(true);
     try {
-      const BASE = import.meta.env.VITE_API_URL || '/api';
-      const res = await fetch(`${BASE}/admin/users/${creatorId}/sync-social`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await res.json();
+      const data = await adminAPI.syncSocial(creatorId);
       if (data.success) {
         setSelected(data.user);
-        alert('Social profile metrics & follower data re-synced successfully!');
+        toast.success('Social profile metrics & follower data re-synced successfully!');
         load();
       } else {
-        alert(data.message || 'Sync failed.');
+        toast.error(data.message || 'Sync failed.');
       }
     } catch (e) {
-      alert('Error syncing social data: ' + e.message);
+      toast.error('Error syncing social data: ' + (e.response?.data?.message || e.message));
     } finally {
       setSyncingSocial(false);
     }
@@ -138,17 +146,33 @@ export default function CreatorCRM() {
           <h1 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(18px,4vw,24px)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}><Users2 size={22} style={{ color: 'var(--acc2)' }} />Creator CRM</h1>
           <p style={{ color: 'var(--t2)', fontSize: 13, marginTop: 4 }}>Track relationships, availability & pipeline · {total} creators</p>
         </div>
-        <button
-          onClick={handleExportExcel}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px',
-            borderRadius: 10, background: 'var(--acc)', color: '#FFF',
-            border: 'none', fontWeight: 700, fontSize: 12.5, cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(230,95,43,0.3)', transition: 'all 0.15s'
-          }}
-        >
-          <Download size={15} /> Export Creator Database (Excel/CSV)
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            onClick={handleBulkSyncSocial}
+            disabled={bulkSyncing}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px',
+              borderRadius: 10, background: bulkSyncing ? 'var(--s2)' : 'linear-gradient(135deg, #FF7A3D 0%, #E65F2B 100%)', color: '#FFF',
+              border: 'none', fontWeight: 700, fontSize: 12.5, cursor: bulkSyncing ? 'not-allowed' : 'pointer',
+              boxShadow: '0 4px 14px rgba(230,95,43,0.3)', transition: 'all 0.15s'
+            }}
+          >
+            <RefreshCw size={15} style={bulkSyncing ? { animation: 'spin 1s linear infinite' } : {}} />
+            {bulkSyncing ? 'Re-syncing All Creators…' : '⚡ Bulk Sync All Creator Profiles'}
+          </button>
+
+          <button
+            onClick={handleExportExcel}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px',
+              borderRadius: 10, background: 'var(--s2)', color: 'var(--t1)',
+              border: '1px solid var(--border)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer',
+              transition: 'all 0.15s'
+            }}
+          >
+            <Download size={15} /> Export Creator Database (Excel/CSV)
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

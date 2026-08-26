@@ -66,6 +66,7 @@ const userSchema = new mongoose.Schema({
   verificationStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
   verificationNote: { type: String, default: '' },
   analyzedAt: { type: Date },
+  lastSocialRefetchAt: { type: Date },
 
   /* V3 Verification Tiers */
   creatorVerificationTier: { type: String, enum: ['Registered', 'Verified', 'Professional', 'Elite'], default: 'Registered' },

@@ -4,7 +4,7 @@ import { useAuth, getDashboardPath } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import SEO from '../../components/common/SEO';
 import {
-  Zap, CheckCircle2, ArrowRight, X,
+  Phone, CheckCircle2, ArrowRight, X,
   User, Mail, Lock, Globe, ShieldCheck,
   Eye, EyeOff, Sparkles, Grid
 } from 'lucide-react';
@@ -578,7 +578,7 @@ export default function Register() {
                 <div className="login-field-group">
                   <label className="login-field-label">Phone Number *</label>
                   <div className="login-input-wrap">
-                    <Zap size={16} className="login-input-icon" />
+                    <Phone size={16} className="login-input-icon" />
                     <input
                       type="tel"
                       value={form.phone || ''}

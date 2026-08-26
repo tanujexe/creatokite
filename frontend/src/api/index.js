@@ -98,6 +98,8 @@ export const adminAPI = {
   teamMembers:         ()         => api.get('/admin/team-members').then(unwrap),
   reels:               p          => api.get('/admin/reels', { params:p }).then(unwrap),
   reelStats:           ()         => api.get('/admin/reels/stats').then(unwrap),
+  syncSocial:          id         => api.post(`/admin/users/${id}/sync-social`).then(unwrap),
+  bulkSyncSocial:      ()         => api.post('/admin/users/bulk-sync-social').then(unwrap),
 };
 
 export const usersAPI = {
