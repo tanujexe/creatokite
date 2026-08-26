@@ -8,11 +8,11 @@ import toast from 'react-hot-toast';
 /* ── Stat card ────────────────────────────────────────── */
 function StatCard({ icon, label, value, color='var(--acc)' }) {
   return (
-    <div className="card" style={{ padding:'16px 20px', display:'flex', alignItems:'center', gap:14, borderRadius: 16 }}>
-      <div style={{ width:44, height:44, borderRadius:12, background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{icon}</div>
-      <div>
-        <div style={{ fontSize:22, fontWeight:850, color, fontFamily:'var(--fd)', lineHeight:1.1 }}>{(value || 0).toLocaleString('en-IN')}</div>
-        <div style={{ fontSize:12, color:'var(--t2)', marginTop:3, fontWeight:500 }}>{label}</div>
+    <div className="card" style={{ padding:'12px 14px', display:'flex', alignItems:'center', gap:10, borderRadius: 14, minWidth: 0 }}>
+      <div style={{ width:38, height:38, borderRadius:10, background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>{icon}</div>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize:18, fontWeight:850, color, fontFamily:'var(--fd)', lineHeight:1.1 }}>{(value || 0).toLocaleString('en-IN')}</div>
+        <div style={{ fontSize:11, color:'var(--t2)', marginTop:2, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{label}</div>
       </div>
     </div>
   );
@@ -314,9 +314,9 @@ export default function CommunityAdmin() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats 2X2 Grid */}
       {stats && (
-        <div className="grid-2-mobile" style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 20 }}>
           <StatCard icon="📝" label="Total Community Posts" value={stats.totalPosts} color="var(--acc)"/>
           <StatCard icon="💬" label="Total User Comments" value={stats.totalComments} color="var(--gold)"/>
           <StatCard icon="📅" label="Posts Today" value={stats.postsToday} color="#10b981"/>

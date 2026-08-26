@@ -156,6 +156,7 @@ export default function NotificationCenter() {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [dispatching, setDispatching] = useState(false);
+  const [selectedDetailNotif, setSelectedDetailNotif] = useState(null);
 
   /* Modal Wizard State */
   const [showWizard, setShowWizard] = useState(false);
@@ -399,21 +400,21 @@ export default function NotificationCenter() {
         </div>
 
         {/* Top Actions */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Btn variant="secondary" size="sm" onClick={() => setTab('templates')} style={{ gap: 6 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', width: '100%', maxWidth: 450 }}>
+          <Btn variant="secondary" size="sm" onClick={() => setTab('templates')} style={{ flex: '1 1 110px', justifyContent: 'center', gap: 6 }}>
             <FileText size={13} /> Templates
           </Btn>
-          <Btn variant="secondary" size="sm" onClick={() => toast.success('Audience list exported')} style={{ gap: 6 }}>
+          <Btn variant="secondary" size="sm" onClick={() => toast.success('Audience list exported')} style={{ flex: '1 1 120px', justifyContent: 'center', gap: 6 }}>
             <Download size={13} /> Export Analytics
           </Btn>
-          <Btn variant="primary" size="sm" onClick={() => { setWizardStep(1); setShowWizard(true); }} style={{ gap: 6, fontWeight: 700 }}>
+          <Btn variant="primary" size="sm" onClick={() => { setWizardStep(1); setShowWizard(true); }} style={{ flex: '1 1 130px', justifyContent: 'center', gap: 6, fontWeight: 700 }}>
             <Plus size={14} /> New Notification
           </Btn>
         </div>
       </div>
 
       {/* ── 5 KPI Analytics Cards ───────────────────────── */}
-      <div className="grid-5" style={{ gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: 10 }}>
         <div className="card" style={{ padding: '14px 16px', background: 'linear-gradient(135deg, rgba(108,99,255,0.08), rgba(108,99,255,0.02))', border: '1px solid rgba(108,99,255,0.18)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--t3)', fontSize: 11, fontWeight: 600 }}>
             <span>Notifications Sent</span>
@@ -472,8 +473,8 @@ export default function NotificationCenter() {
         </div>
       </div>
 
-      {/* ── Main View Tabs ─────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
+      {/* ── Main View Tabs (Select Dropdown on Mobile, Tabs on Desktop) ── */}
+      <div className="hide-mobile" style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
         {[
           { key: 'history', label: 'Notification History', icon: Layers },
           { key: 'analytics', label: 'Analytics & Insights', icon: BarChart3 },
@@ -502,6 +503,27 @@ export default function NotificationCenter() {
         })}
       </div>
 
+      {/* Mobile Select Dropdown for Tabs */}
+      <div className="show-mobile" style={{ display: 'none', width: '100%', marginBottom: 4 }}>
+        <select
+          value={tab}
+          onChange={e => setTab(e.target.value)}
+          className="form-input"
+          style={{
+            width: '100%', height: 42, fontSize: 13, fontWeight: 800, borderRadius: 12,
+            background: 'var(--s2)', color: 'var(--acc, #E65F2B)', border: '1.5px solid rgba(230, 95, 43, 0.3)',
+            padding: '0 14px'
+          }}
+        >
+          <option value="history" style={{ background: 'var(--s2)', color: 'var(--t1)' }}>📂 Notification History</option>
+          <option value="analytics" style={{ background: 'var(--s2)', color: 'var(--t1)' }}>📊 Analytics & Insights</option>
+          <option value="templates" style={{ background: 'var(--s2)', color: 'var(--t1)' }}>📑 Templates Gallery</option>
+          <option value="scheduled" style={{ background: 'var(--s2)', color: 'var(--t1)' }}>⏰ Upcoming Scheduled</option>
+          <option value="rules" style={{ background: 'var(--s2)', color: 'var(--t1)' }}>⚡ Automation Rules</option>
+          <option value="logs" style={{ background: 'var(--s2)', color: 'var(--t1)' }}>🛡️ Audit Logs</option>
+        </select>
+      </div>
+
       {/* ── TAB 1: NOTIFICATION HISTORY ────────────────── */}
       {tab === 'history' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -509,7 +531,7 @@ export default function NotificationCenter() {
           {/* Filter Bar */}
           <div className="card" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-              <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 200 }}>
+              <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 180 }}>
                 <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--t3)' }} />
                 <input
                   type="text"
@@ -521,7 +543,7 @@ export default function NotificationCenter() {
                 />
               </div>
 
-              <select className="form-input" style={{ width: 'auto', height: 36, fontSize: 12 }} value={filterAudience} onChange={e => setFilterAudience(e.target.value)}>
+              <select className="form-input" style={{ flex: '1 1 120px', minWidth: 110, height: 36, fontSize: 12 }} value={filterAudience} onChange={e => setFilterAudience(e.target.value)}>
                 <option value="all">All Audiences</option>
                 <option value="All Creators">All Creators</option>
                 <option value="All Brands">All Brands</option>
@@ -530,7 +552,7 @@ export default function NotificationCenter() {
                 <option value="Pending Verification">Pending Verification</option>
               </select>
 
-              <select className="form-input" style={{ width: 'auto', height: 36, fontSize: 12 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+              <select className="form-input" style={{ flex: '1 1 110px', minWidth: 100, height: 36, fontSize: 12 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
                 <option value="all">All Types</option>
                 <option value="Campaign">Campaign</option>
                 <option value="System Alert">System Alert</option>
@@ -539,7 +561,7 @@ export default function NotificationCenter() {
                 <option value="Announcement">Announcement</option>
               </select>
 
-              <select className="form-input" style={{ width: 'auto', height: 36, fontSize: 12 }} value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
+              <select className="form-input" style={{ flex: '1 1 110px', minWidth: 100, height: 36, fontSize: 12 }} value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
                 <option value="all">All Priorities</option>
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
@@ -547,7 +569,7 @@ export default function NotificationCenter() {
                 <option value="Critical">Critical</option>
               </select>
 
-              <select className="form-input" style={{ width: 'auto', height: 36, fontSize: 12 }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+              <select className="form-input" style={{ flex: '1 1 110px', minWidth: 100, height: 36, fontSize: 12 }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
                 <option value="all">All Statuses</option>
                 <option value="Delivered">Delivered</option>
                 <option value="Scheduled">Scheduled</option>
@@ -567,7 +589,7 @@ export default function NotificationCenter() {
 
             {/* Bulk Actions */}
             {selectedNotifIds.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(108,99,255,0.08)', borderRadius: 8, border: '1px solid rgba(108,99,255,0.2)', fontSize: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(108,99,255,0.08)', borderRadius: 8, border: '1px solid rgba(108,99,255,0.2)', fontSize: 12, flexWrap: 'wrap' }}>
                 <span style={{ fontWeight: 600, color: 'var(--p2)' }}>{selectedNotifIds.length} selected</span>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <Btn size="sm" variant="ghost" onClick={() => handleBulkAction('resend')} style={{ fontSize: 11, gap: 4 }}><RefreshCw size={11} /> Resend</Btn>
@@ -578,10 +600,10 @@ export default function NotificationCenter() {
             )}
           </div>
 
-          {/* History Table */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 12 }}>
+          {/* Desktop Multi-Column Table View */}
+          <div className="card hide-mobile" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="table-wrap" style={{ overflowX: 'auto', width: '100%' }}>
+              <table style={{ width: '100%', minWidth: 780, borderCollapse: 'collapse', textAlign: 'left', fontSize: 12 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', color: 'var(--t3)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                     <th style={{ padding: '12px 14px', width: 36 }}>
@@ -618,9 +640,13 @@ export default function NotificationCenter() {
                           </div>
                           {n.subtitle && <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2 }}>{n.subtitle}</div>}
                         </td>
-                        <td style={{ padding: '12px 14px' }}>
-                          <span style={{ padding: '3px 8px', borderRadius: 99, background: 'rgba(255,255,255,0.06)', fontSize: 11, fontWeight: 500 }}>
-                            👥 {n.audience} ({n.audienceCount})
+                        <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
+                          <span style={{
+                            padding: '4px 10px', borderRadius: 99, background: 'rgba(108,99,255,0.12)', color: 'var(--p2, #6C63FF)',
+                            border: '1px solid rgba(108,99,255,0.25)', fontSize: 11, fontWeight: 700,
+                            display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap'
+                          }}>
+                            👥 {n.audience.includes('(') ? n.audience : `${n.audience} (${(n.audienceCount || 0).toLocaleString('en-IN')})`}
                           </span>
                         </td>
                         <td style={{ padding: '12px 14px', color: 'var(--t2)' }}>
@@ -679,19 +705,87 @@ export default function NotificationCenter() {
               </table>
             </div>
           </div>
+
+          {/* Mobile Single-View Responsive Cards (NO HORIZONTAL SCROLL NEEDED!) */}
+          <div className="show-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12 }}>
+            {filteredNotifications.length === 0 ? (
+              <div className="card" style={{ padding: 24, textAlign: 'center', color: 'var(--t3)' }}>
+                No notifications found matching filter options.
+              </div>
+            ) : (
+              filteredNotifications.map(n => (
+                <div key={n.id} className="card" style={{ padding: '16px', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 12, background: 'var(--s1)', border: '1px solid var(--border)' }}>
+                  {/* Top Row: Checkbox + Title + Priority */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <input type="checkbox" checked={selectedNotifIds.includes(n.id)} onChange={() => toggleSelectOne(n.id)} style={{ marginTop: 3, cursor: 'pointer' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--t1)', wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        {n.pinned && <span>📌</span>}
+                        {n.title}
+                      </div>
+                      {n.subtitle && <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 3, wordBreak: 'break-word' }}>{n.subtitle}</div>}
+                    </div>
+                    <span style={{
+                      padding: '3px 9px', borderRadius: 99, fontSize: 10.5, fontWeight: 800, flexShrink: 0,
+                      background: n.priority === 'Critical' ? 'rgba(255,107,87,0.15)' : n.priority === 'High' ? 'rgba(245,166,35,0.15)' : 'rgba(108,99,255,0.15)',
+                      color: n.priority === 'Critical' ? 'var(--rose)' : n.priority === 'High' ? 'var(--gold)' : 'var(--p2)'
+                    }}>
+                      {n.priority}
+                    </span>
+                  </div>
+
+                  {/* Middle Row: Audience Badge + Status */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '10px 0', borderTop: '1px dashed var(--border)', borderBottom: '1px dashed var(--border)' }}>
+                    <span style={{
+                      padding: '4px 10px', borderRadius: 99, background: 'rgba(108,99,255,0.12)', color: 'var(--p2, #6C63FF)',
+                      border: '1px solid rgba(108,99,255,0.25)', fontSize: 11, fontWeight: 700,
+                      display: 'inline-flex', alignItems: 'center', gap: 5
+                    }}>
+                      👥 {n.audience.includes('(') ? n.audience : `${n.audience} (${(n.audienceCount || 0).toLocaleString('en-IN')})`}
+                    </span>
+                    <span style={{
+                      fontSize: 11.5, fontWeight: 700,
+                      color: n.status === 'Delivered' ? 'var(--acc2)' : n.status === 'Scheduled' ? '#6366f1' : 'var(--rose)'
+                    }}>
+                      ● {n.status}
+                    </span>
+                  </div>
+
+                  {/* Metrics & Created Row */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11.5, color: 'var(--t3)' }}>
+                    <div>Open Rate: <span style={{ color: 'var(--acc2)', fontWeight: 800 }}>{n.openRate}</span> ({n.ctr} CTR)</div>
+                    <div>{n.createdAt}</div>
+                  </div>
+
+                  {/* Bottom Row: Actions */}
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 4 }}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => toast.success(`Viewing "${n.title}"`)} style={{ fontSize: 11.5, padding: '6px 12px', gap: 4, fontWeight: 700 }}>
+                      <Eye size={13} /> Details
+                    </button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => toast.success(`Duplicated "${n.title}"`)} style={{ fontSize: 11.5, padding: '6px 12px', gap: 4 }}>
+                      <Copy size={13} />
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setNotifications(prev => prev.filter(x => x.id !== n.id))} style={{ color: 'var(--rose)', fontSize: 11.5, padding: '6px 10px' }}>
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 
       {/* ── TAB 2: ANALYTICS & INSIGHTS ────────────────── */}
       {tab === 'analytics' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="grid-2" style={{ gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
             <div className="card" style={{ padding: 18 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 700 }}>📊 Notifications Sent Per Day</h3>
                 <span style={{ fontSize: 11, color: 'var(--t3)' }}>Last 7 Days</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 160, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 160, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
                 {[
                   { day: 'Mon', count: 420 },
                   { day: 'Tue', count: 680 },
@@ -701,7 +795,7 @@ export default function NotificationCenter() {
                   { day: 'Sat', count: 320 },
                   { day: 'Sun', count: 450 },
                 ].map(d => (
-                  <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                  <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 0 }}>
                     <div style={{ width: '100%', height: `${(d.count / 890) * 120}px`, background: 'linear-gradient(to top, var(--p), var(--p2))', borderRadius: 4 }} />
                     <span style={{ fontSize: 10, color: 'var(--t3)' }}>{d.day}</span>
                   </div>
@@ -722,12 +816,12 @@ export default function NotificationCenter() {
                   { channel: 'SMS Messages', reach: '99%', open: '92%', color: 'var(--coral)' },
                   { channel: 'WhatsApp Alerts', reach: '96%', open: '88%', color: '#25D366' },
                 ].map(c => (
-                  <div key={c.channel} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12 }}>
-                    <span style={{ width: 140, fontWeight: 600 }}>{c.channel}</span>
-                    <div style={{ flex: 1, margin: '0 12px', height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div key={c.channel} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ flex: '1 1 120px', fontWeight: 600, minWidth: 100 }}>{c.channel}</span>
+                    <div style={{ flex: '1 1 80px', height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden', minWidth: 60 }}>
                       <div style={{ width: c.open, height: '100%', background: c.color }} />
                     </div>
-                    <span style={{ fontWeight: 700, color: c.color }}>{c.open}</span>
+                    <span style={{ fontWeight: 700, color: c.color, minWidth: 35, textAlign: 'right' }}>{c.open}</span>
                   </div>
                 ))}
               </div>
@@ -739,7 +833,7 @@ export default function NotificationCenter() {
       {/* ── TAB 3: TEMPLATES GALLERY ──────────────────── */}
       {tab === 'templates' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="grid-3" style={{ gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
             {TEMPLATES.map(t => (
               <div key={t.id} className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 12 }}>
                 <div>
@@ -793,20 +887,23 @@ export default function NotificationCenter() {
       {/* ── TAB 5: AUTOMATION RULES ────────────────────── */}
       {tab === 'rules' && (
         <div className="card" style={{ padding: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700 }}>⚡ Automatic System Trigger Rules</h3>
-            <Btn variant="secondary" size="sm" onClick={() => toast.success('New trigger rule added')}>+ Add Custom Rule</Btn>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+            <div>
+              <h3 style={{ fontSize: 14, fontWeight: 800, margin: 0, color: 'var(--t1)' }}>⚡ Automatic System Trigger Rules</h3>
+              <div style={{ fontSize: 11.5, color: 'var(--t3)', marginTop: 2 }}>Event-driven notifications dispatched on platform events</div>
+            </div>
+            <Btn variant="secondary" size="sm" onClick={() => toast.success('New trigger rule added')} style={{ fontSize: 11, fontWeight: 700 }}>+ Add Custom Rule</Btn>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {AUTOMATION_RULES.map(r => (
-              <div key={r.id} style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 13 }}>{r.name}</div>
-                  <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2 }}>Event: {r.event} · Target: {r.target}</div>
+              <div key={r.id} style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                <div style={{ flex: '1 1 180px', minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--t1)', wordBreak: 'break-word' }}>{r.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2, wordBreak: 'break-word' }}>Event: {r.event} · Target: {r.target}</div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 11, color: 'var(--p2)' }}>{r.channel}</span>
-                  <input type="checkbox" checked={r.enabled} onChange={() => toast.success(`Rule "${r.name}" updated`)} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, color: 'var(--acc, #E65F2B)', fontWeight: 700, background: 'rgba(230,95,43,0.1)', padding: '2px 8px', borderRadius: 6 }}>{r.channel}</span>
+                  <input type="checkbox" checked={r.enabled} onChange={() => toast.success(`Rule "${r.name}" updated`)} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: 'var(--acc, #E65F2B)' }} />
                 </div>
               </div>
             ))}

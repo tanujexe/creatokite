@@ -1027,7 +1027,7 @@ router.get('/notifications/stats', adminOnly, async (req, res) => {
         id: b.id.toString(),
         title: b.title,
         subtitle: (b.subtitle || '').slice(0, 80),
-        audience: `Recipients (${b.sentCount})`,
+        audience: 'Recipients',
         audienceCount: b.sentCount,
         type: b.type || 'Broadcast',
         priority: 'High',
