@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, getDashboardPath } from '../contexts/AuthContext';
 import FAQ from "../components/FAQ";
 import SEO from '../components/common/SEO';
+import { Sparkles, ArrowRight } from 'lucide-react';
+import api from '../api';
 
 
 const WORDS = ['Campaigns', 'Creators', 'ROI', 'Impact'];
 
 const FLOW = [
   { n: '01', t: 'Brand Submits Brief', d: 'Describe your goals, budget and audience. No creator browsing, no DMs, no spreadsheets.' },
-  { n: '02', t: 'AI Analyzes & Matches', d: 'Our AI scores 12,000+ creators on 12 parameters — niche, engagement quality, authenticity, growth.' },
+  { n: '02', t: 'AI Analyzes & Matches', d: 'Our AI scores 200+ creators on 12 parameters — niche, engagement quality, authenticity, growth.' },
   { n: '03', t: 'Admin Curates & Assigns', d: 'Our team reviews AI suggestions, finalizes the mix, and assigns creators to your campaign.' },
   { n: '04', t: 'Creators Execute', d: 'Selected creators receive the brief, accept, create content, and submit through the platform.' },
   { n: '05', t: 'Live Analytics', d: 'Real-time tracking with AI insights. We optimize mid-campaign for maximum ROI.' },
@@ -102,6 +104,25 @@ export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [roleModalOpen, setRoleModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [stats, setStats] = useState({
+    displayCreators: '200+',
+    displayBrands: '4+',
+    displayCampaigns: '25+',
+  });
+
+  useEffect(() => {
+    api.get('/auth/public-stats')
+      .then(res => {
+        if (res.data?.success) {
+          setStats({
+            displayCreators: res.data.displayCreators || '200+',
+            displayBrands: res.data.displayBrands || '4+',
+            displayCampaigns: res.data.displayCampaigns || '25+',
+          });
+        }
+      })
+      .catch(() => { });
+  }, []);
 
   // Handle window resizing to toggle parallax off on mobile viewports
   useEffect(() => {
@@ -207,7 +228,7 @@ export default function Landing() {
 
   return (
     <div id="landing-page-root">
-      <SEO 
+      <SEO
         title="Creatokite — #1 UGC Agency, Brand & Dealer Creator Community Platform"
         description="Creatokite is the ultimate AI-powered UGC agency platform connecting top brands, dealer networks, and creator communities for high-ROI video campaigns."
         keywords="UGC Agency, Brand Creator Marketing, Dealer Creator Network, Creator Community, UGC Video Platform, Influencer Campaign OS, Creatokite"
@@ -236,22 +257,36 @@ export default function Landing() {
           <a className="logo" href="#" onClick={(e) => { e.preventDefault(); scrollToSection('hero'); }}>
             Creato<span>Kite</span>
           </a>
-          <div className="mobile-links-menu" style={{ display: mobileMenuOpen ? 'flex' : '' }}>
+
+          {/* Desktop Navigation Links */}
+          <div className="links">
             <a href="#campaigns" onClick={(e) => { e.preventDefault(); scrollToSection('campaigns'); }}>Explore</a>
             <a href="#creator-split" onClick={(e) => { e.preventDefault(); scrollToSection('creator-split'); }}>For Creators</a>
             <a href="#brand-split" onClick={(e) => { e.preventDefault(); scrollToSection('brand-split'); }}>For Brands</a>
             <a href="#campaigns" onClick={(e) => { e.preventDefault(); scrollToSection('campaigns'); }}>Campaigns</a>
             <a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</a>
-            <hr style={{ width: '100%', border: '0', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '10px 0' }} />
-            {user ? (
-              <button className="cta" style={{ width: '100%' }} onClick={() => { setMobileMenuOpen(false); nav(dashboardPath); }}>Dashboard ↗</button>
-            ) : (
-              <>
-                <a href="#login" style={{ textAlign: 'center', display: 'block', padding: '10px 0' }} onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); nav('/login'); }}>Login</a>
-                <button className="cta" style={{ width: '100%', marginTop: '5px' }} onClick={() => { setMobileMenuOpen(false); setRoleModalOpen(true); }}>Join CreatoKite ↗</button>
-              </>
-            )}
           </div>
+
+          {/* Mobile Menu Drawer */}
+          {mobileMenuOpen && (
+            <div className="mobile-links-menu">
+              <a href="#campaigns" onClick={(e) => { e.preventDefault(); scrollToSection('campaigns'); }}>Explore</a>
+              <a href="#creator-split" onClick={(e) => { e.preventDefault(); scrollToSection('creator-split'); }}>For Creators</a>
+              <a href="#brand-split" onClick={(e) => { e.preventDefault(); scrollToSection('brand-split'); }}>For Brands</a>
+              <a href="#campaigns" onClick={(e) => { e.preventDefault(); scrollToSection('campaigns'); }}>Campaigns</a>
+              <a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</a>
+              <hr style={{ width: '100%', border: '0', borderTop: '1px solid rgba(0,0,0,0.1)', margin: '10px 0' }} />
+              {user ? (
+                <button className="cta" style={{ width: '100%' }} onClick={() => { setMobileMenuOpen(false); nav(dashboardPath); }}>Dashboard ↗</button>
+              ) : (
+                <>
+                  <a href="#login" style={{ textAlign: 'center', display: 'block', padding: '10px 0' }} onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); nav('/login'); }}>Login</a>
+                  <button className="cta" style={{ width: '100%', marginTop: '5px' }} onClick={() => { setMobileMenuOpen(false); setRoleModalOpen(true); }}>Join CreatoKite ↗</button>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="navright">
             {user ? (
               <button className="cta" onClick={() => nav(dashboardPath)}>Dashboard ↗</button>
@@ -269,79 +304,225 @@ export default function Landing() {
       {/* ── HERO SECTION ───────────────────────────────────── */}
       <header className="hero" id="hero">
         <div className="wrap hero-grid">
-          <div>
-            <div className="reveal reveal-delay-1 eyebrow">A collaboration platform for creative people</div>
+          {/* Left Column Content */}
+          <div className="hero-content">
+            <div className="reveal reveal-delay-1 hero-badge-wrapper">
+              <span className="hero-pill-badge">FOR BRANDS & CREATORS</span>
+            </div>
+
             <h1 className="reveal reveal-delay-2 hero-title-serif">
               Where<br />
               creators meet<br />
               <em>brands.</em>
             </h1>
-            <p className="reveal reveal-delay-3 hero-copy" style={{ maxWidth: '440px' }}>
-              No cold DMs, no vague briefs. CreatoKite matches your creative identity to campaigns that actually fit, and gives brands a direct line to people who make work worth sharing
+
+            <p className="reveal reveal-delay-3 hero-copy">
+              CreatoKite connects brands with the right creators to build impactful collaborations that drive real results. Smart matching. Clear workflow. Measurable impact.
             </p>
-            <div className="reveal reveal-delay-4 actions">
-              <button className="cta" onClick={() => nav('/register?role=brand')}>Launch a Campaign ↗</button>
-              <button className="ghost" onClick={() => nav('/register?role=creator')}>Join as Creator</button>
+
+            <div className="reveal reveal-delay-4 hero-actions">
+              <button className="cta-primary" onClick={() => nav('/register?role=brand')}>
+                Launch a Campaign <span className="btn-arrow">→</span>
+              </button>
+              <button className="cta-secondary" onClick={() => {
+                const el = document.getElementById('how-it-works');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}>
+                <span className="play-icon-circle">
+                  <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+                    <path d="M9 6L1.5 10.3301L1.5 1.66987L9 6Z" fill="#1F2937" />
+                  </svg>
+                </span>
+                Watch How It Works
+              </button>
+            </div>
+
+            {/* Social Proof Footer */}
+            <div className="reveal reveal-delay-5 hero-social-proof">
+              <div className="avatar-stack">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80" alt="Creator 1" className="avatar-img" />
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80" alt="Creator 2" className="avatar-img" />
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80" alt="Creator 3" className="avatar-img" />
+              </div>
+              <span className="social-proof-text">
+                Trusted by <strong>{stats.displayCreators}</strong> creators & <strong>{stats.displayBrands}</strong> brands
+              </span>
             </div>
           </div>
-          <div className="hero-art reveal">
-            <div className="art-paper"></div>
-            <div className="art-image" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: '#111216', position: 'absolute' }}>
-              {/* Header Bar */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}></span>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em', fontFamily: 'var(--fb)' }}>CAMPAIGN MATCH OS</span>
-                </div>
-                <span style={{ fontSize: '9px', color: 'var(--acid)', background: 'rgba(227, 107, 57, 0.1)', padding: '2px 8px', borderRadius: '99px', fontWeight: 700, fontFamily: 'var(--fb)' }}>AI MATCH V3.0</span>
-              </div>
 
-              {/* Creator Match Card Mockup */}
-              <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '16px', position: 'relative', display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1, justifyContent: 'center' }}>
-                {/* Score badge absolute top right */}
-                <div style={{ position: 'absolute', top: '16px', right: '16px', background: 'linear-gradient(135deg, #FF8D50, #E36B39)', color: '#FFFFFF', padding: '6px 12px', borderRadius: '12px', textAlign: 'center', boxShadow: '0 4px 15px rgba(227,107,57,0.2)', flexShrink: 0 }}>
-                  <div style={{ fontSize: '18px', fontWeight: 800, fontFamily: 'Space Grotesk, sans-serif' }}>98%</div>
-                  <div style={{ fontSize: '8px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, fontFamily: 'var(--fb)' }}>Match</div>
-                </div>
+          {/* Right Column Visual Cards Composition */}
+          <div className="hero-art-container reveal">
+            {/* Background Organic Design (Blob Shapes, Dotted Grid & Swirl Line) */}
+            <div className="hero-blob-backdrop">
+              <svg viewBox="0 0 520 520" fill="none" xmlns="http://www.w3.org/2000/svg" className="blob-svg">
+                <defs>
+                  <linearGradient id="hero-outer-blob-grad" x1="100" y1="50" x2="450" y2="480" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FAF0E8" />
+                    <stop offset="0.5" stopColor="#F8E5D8" />
+                    <stop offset="1" stopColor="#F5DCCA" />
+                  </linearGradient>
+                  <linearGradient id="hero-inner-blob-grad" x1="150" y1="100" x2="420" y2="420" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FCECE2" />
+                    <stop offset="1" stopColor="#F7DFCE" />
+                  </linearGradient>
+                </defs>
 
-                {/* Profile info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #E36B39, #FFE3D8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111216', fontSize: '20px', fontWeight: 'bold' }}>👤</div>
-                  <div>
-                    <h4 style={{ color: '#FFFFFF', fontSize: '16px', fontWeight: 700, margin: 0, fontFamily: 'var(--fb)' }}>Riya Malhotra</h4>
-                    <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px', margin: 0, fontFamily: 'var(--fb)' }}>Fashion & Travel UGC Creator</p>
-                  </div>
-                </div>
+                {/* Outer Large Organic Fluid Blob Shape */}
+                <path
+                  d="M 290,25 C 380,20 480,75 490,175 C 500,275 455,360 395,430 C 315,505 185,485 105,430 C 25,375 -15,265 25,165 C 65,65 180,30 290,25 Z"
+                  fill="url(#hero-outer-blob-grad)"
+                  fillOpacity="0.88"
+                />
 
-                {/* Match criteria tags */}
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                  <span style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFFFFF', fontSize: '10px', padding: '4px 8px', borderRadius: '8px', fontWeight: 600, fontFamily: 'var(--fb)' }}>High Engagement (8.5%)</span>
-                  <span style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFFFFF', fontSize: '10px', padding: '4px 8px', borderRadius: '8px', fontWeight: 600, fontFamily: 'var(--fb)' }}>Gen-Z Reach</span>
-                </div>
+                {/* Inner Layered Accent Blob */}
+                <path
+                  d="M 250,55 C 330,45 420,105 420,195 C 420,285 360,375 280,405 C 200,435 125,385 95,315 C 65,245 85,165 145,105 C 185,65 210,60 250,55 Z"
+                  fill="url(#hero-inner-blob-grad)"
+                  fillOpacity="0.7"
+                />
 
-                {/* Progress bar info */}
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'rgba(255,255,255,0.6)', fontWeight: 600, fontFamily: 'var(--fb)' }}>
-                    <span>Audience Fit Score</span>
-                    <span>96%</span>
-                  </div>
-                  <div style={{ height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ width: '96%', height: '100%', background: 'var(--acid)' }}></div>
-                  </div>
-                </div>
-              </div>
+                {/* Delicate Dotted Grid Pattern Matrix */}
+                <g opacity="0.35" fill="#E55B2B">
+                  <circle cx="280" cy="100" r="1.8" />
+                  <circle cx="295" cy="100" r="1.8" />
+                  <circle cx="310" cy="100" r="1.8" />
+                  <circle cx="325" cy="100" r="1.8" />
 
-              {/* Subtitle / Activity Feed row */}
-              <div style={{ background: 'rgba(227, 107, 57, 0.05)', border: '1px dashed rgba(227,107,57,0.2)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'var(--fb)' }}>Mono Labs Campaign</div>
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginTop: '2px', fontFamily: 'var(--fb)' }}>Brief accepted. Creator matched.</div>
-                </div>
-                <span style={{ fontSize: '14px' }}>⚡</span>
+                  <circle cx="280" cy="115" r="1.8" />
+                  <circle cx="295" cy="115" r="1.8" />
+                  <circle cx="310" cy="115" r="1.8" />
+                  <circle cx="325" cy="115" r="1.8" />
+
+                  <circle cx="280" cy="130" r="1.8" />
+                  <circle cx="295" cy="130" r="1.8" />
+                  <circle cx="310" cy="130" r="1.8" />
+                  <circle cx="325" cy="130" r="1.8" />
+
+                  <circle cx="280" cy="145" r="1.8" />
+                  <circle cx="295" cy="145" r="1.8" />
+                  <circle cx="310" cy="145" r="1.8" />
+                  <circle cx="325" cy="145" r="1.8" />
+                </g>
+
+                {/* Organic Orange Swooping Line with Curly Loop */}
+                <path
+                  d="M 370,110 C 230,125 90,185 65,305 C 45,395 90,435 110,375 C 122,335 84,335 79,380 C 74,420 104,435 109,405"
+                  stroke="#E86C44"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                  opacity="0.8"
+                />
+              </svg>
+
+              {/* Four-Pointed Spark Star */}
+              <div className="hero-spark-star">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <path d="M14 2 L17.5 10.5 L26 14 L17.5 17.5 L14 26 L10.5 17.5 L2 14 L10.5 10.5 Z" fill="none" stroke="#E86C44" strokeWidth="1.8" strokeLinejoin="round" />
+                </svg>
               </div>
             </div>
-            <div className="orbit">make it<br />worth seeing</div>
-            <div className="sticker">Creativity<br />first</div>
+
+            {/* Overlapping Floating Cards */}
+            <div className="hero-cards-wrapper">
+
+              {/* Card 1: Top-Left Creator Card (Female) */}
+              <div className="hero-card card-creator-top float-anim-1">
+                <div className="creator-img-wrapper">
+                  <img src="/assets/hero_creator_female.jpg" alt="Creator Riya" className="creator-photo" />
+                  <span className="card-tag tag-orange">Creator</span>
+                  <div className="card-stats-row">
+                    <div className="stat-pill">
+                      <span className="heart-icon">♥</span> 120K
+                    </div>
+                    <div className="stat-pill">
+                      <span className="star-icon">★</span> 4.8
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Center Floating Campaign Card */}
+              <div className="hero-card card-campaign-center float-anim-2">
+                <div className="campaign-card-header">
+                  <div className="header-left">
+                    <div className="new-camp-icon-bg">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <rect x="2" y="2" width="10" height="10" rx="2" stroke="#E55B2B" strokeWidth="1.5" />
+                        <path d="M5 7H9M7 5V9" stroke="#E55B2B" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                    <span className="new-camp-title">New Campaign</span>
+                  </div>
+                  <span className="status-badge-active">Active</span>
+                </div>
+
+                <div className="campaign-card-body">
+                  <h4 className="campaign-name">Skincare Launch</h4>
+                  <p className="campaign-category">Lifestyle • Instagram</p>
+
+                  <div className="progress-container">
+                    <div className="progress-bar-track">
+                      <div className="progress-bar-fill" style={{ width: '76%' }}></div>
+                    </div>
+                    <span className="progress-text">76%</span>
+                  </div>
+
+                  <div className="campaign-card-divider"></div>
+
+                  <div className="campaign-metrics-grid">
+                    <div className="metric-item">
+                      <span className="metric-label">Budget</span>
+                      <span className="metric-value">₹2,50,000</span>
+                    </div>
+                    <div className="metric-item">
+                      <span className="metric-label">Applications</span>
+                      <span className="metric-value">128</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Floating Action Circle Button */}
+              <div className="hero-card card-action-circle float-anim-3">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="7" y1="17" x2="17" y2="7"></line>
+                  <polyline points="7 7 17 7 17 17"></polyline>
+                </svg>
+              </div>
+
+              {/* Card 4: Match Notification Pill */}
+              <div className="hero-card card-match-pill float-anim-4">
+                <div className="match-check-circle">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <div className="match-info">
+                  <div className="match-title">Perfect Match Found</div>
+                  <div className="match-sub">High engagement. Great fit.</div>
+                </div>
+                <div className="match-chevron">›</div>
+              </div>
+
+              {/* Card 5: Bottom-Right Creator Card (Male) */}
+              <div className="hero-card card-creator-bottom float-anim-5">
+                <div className="creator-img-wrapper">
+                  <img src="/assets/hero_creator_male.jpg" alt="Creator Alex" className="creator-photo" />
+                  <span className="card-tag tag-dark">Creator</span>
+                  <div className="card-stats-row">
+                    <div className="stat-pill">
+                      <span className="heart-icon">♥</span> 85K
+                    </div>
+                    <div className="stat-pill">
+                      <span className="star-icon">★</span> 4.7
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       </header>
@@ -401,88 +582,171 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* ── CAMPAIGNS SECTION ───────────────────────────────── */}
-      <section className="campaigns" id="campaigns">
+      {/* ── CAMPAIGNS SECTION (REDESIGNED EXPLICITLY TO MATCH REFERENCE) ── */}
+      <section className="campaigns-spotlight-section" id="campaigns">
         <div className="wrap">
-          <div className="section-top reveal">
-            <h2>Campaigns<br />worth making.</h2>
-            <p>A few examples of the kind of creative briefs waiting to be discovered.</p>
-          </div>
-          <div className="campaign-layout">
-            <article className="campaign big one reveal" style={{ transform: `translateX(${(1 - scrollYOffset) * -50}px)`, transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-              <span className="tag">Fashion · Open</span>
-              <div className="card-mockup">
-                <div className="mock-row">
-                  <div className="mock-avatar"></div>
-                  <div className="mock-info">
-                    <span className="mock-name">Ananya Sharma</span>
-                    <span className="mock-niche">Fashion & Styling</span>
-                  </div>
-                  <span className="mock-score">98% Match</span>
-                </div>
-                <div className="mock-row">
-                  <div className="mock-avatar" style={{ background: '#E36B39' }}></div>
-                  <div className="mock-info">
-                    <span className="mock-name">Kabir Mehta</span>
-                    <span className="mock-niche">Creative Direction</span>
-                  </div>
-                  <span className="mock-score">96% Match</span>
-                </div>
-                <div className="mock-row">
-                  <div className="mock-avatar"></div>
-                  <div className="mock-info">
-                    <span className="mock-name">Riya Sen</span>
-                    <span className="mock-niche">Editorial Photography</span>
-                  </div>
-                  <span className="mock-score">94% Match</span>
-                </div>
-              </div>
-              <div>
-                <h3>Rework the everyday.</h3>
-                <div className="campaign-meta">
-                  <span>North Studio</span>
-                  <span>12 creators</span>
-                </div>
-              </div>
-            </article>
-            <div style={{ display: 'grid', gap: '20px', transform: `translateX(${(1 - scrollYOffset) * 50}px)`, transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-              <article className="campaign two reveal">
-                <span className="tag">Lifestyle · New</span>
-                <div className="card-mockup-mini">
-                  <div className="mock-stat-bar">
-                    <div className="bar-fill" style={{ width: '85%' }}></div>
-                  </div>
-                  <div className="mock-stat-labels">
-                    <span>Engagement</span>
-                    <span>8.2%</span>
-                  </div>
-                </div>
-                <div>
-                  <h3>Slow mornings.</h3>
-                  <div className="campaign-meta">
-                    <span>Good Ground</span>
-                    <span>8 creators</span>
-                  </div>
-                </div>
-              </article>
-              <article className="campaign three reveal">
-                <span className="tag">Technology · Open</span>
-                <div className="card-mockup-mini">
-                  <div className="mock-tag-list">
-                    <span className="mini-badge">AI Match</span>
-                    <span className="mini-badge">Tech</span>
-                    <span className="mini-badge">Reviews</span>
-                  </div>
-                </div>
-                <div>
-                  <h3>Future, in your hands.</h3>
-                  <div className="campaign-meta">
-                    <span>Mono Labs</span>
-                    <span>15 creators</span>
-                  </div>
-                </div>
-              </article>
+          {/* Header Row */}
+          <div className="spotlight-header reveal">
+            <div className="spotlight-header-left">
+              <span className="spotlight-badge">
+                <span className="badge-dot">●</span> CAMPAIGN SPOTLIGHT
+              </span>
+              <h2 className="spotlight-title">
+                Campaigns<br />
+                worth <em>making.</em>
+              </h2>
+              <p className="spotlight-sub">
+                Discover and collaborate on creative briefs across fashion, lifestyle, technology and more.
+              </p>
             </div>
+
+            <div className="spotlight-header-right">
+              <div className="spark-circle-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 0C12 6.62742 17.3726 12 24 12C17.3726 12 12 17.3726 12 24C12 17.3726 6.62742 12 0 12C6.62742 12 12 6.62742 12 0Z" fill="#E55B2B" />
+                </svg>
+              </div>
+              <div className="spark-text">
+                Real briefs. Real creators.<br />Real impact.
+              </div>
+            </div>
+          </div>
+
+          {/* Cards Grid Split Layout */}
+          <div className="spotlight-cards-grid">
+
+            {/* Left Tall Card: FASHION */}
+            <div className="spotlight-card card-fashion reveal">
+              <div className="card-top-tag">
+                <span className="pill-tag tag-fashion">FASHION • OPEN</span>
+              </div>
+
+              {/* Inner White Creator Match Card */}
+              <div className="fashion-inner-card">
+                <div className="match-row">
+                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80" alt="Ananya" className="match-avatar" />
+                  <div className="match-info">
+                    <div className="match-name">Ananya Sharma</div>
+                    <div className="match-niche">Fashion & Styling</div>
+                  </div>
+                  <span className="match-score-pill">95% Match</span>
+                </div>
+
+                <div className="match-row">
+                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80" alt="Kabir" className="match-avatar" />
+                  <div className="match-info">
+                    <div className="match-name">Kabir Mehta</div>
+                    <div className="match-niche">Creative Direction</div>
+                  </div>
+                  <span className="match-score-pill">93% Match</span>
+                </div>
+
+                <div className="match-row">
+                  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80" alt="Riya" className="match-avatar" />
+                  <div className="match-info">
+                    <div className="match-name">Riya Sen</div>
+                    <div className="match-niche">Editorial Photography</div>
+                  </div>
+                  <span className="match-score-pill">91% Match</span>
+                </div>
+              </div>
+
+              {/* Bottom Content & Graphic */}
+              <div className="fashion-card-bottom">
+                <div className="fashion-bottom-left">
+                  <div className="action-circle-btn" onClick={() => nav('/register?role=creator')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="7" y1="17" x2="17" y2="7"></line>
+                      <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                  </div>
+                  <h3 className="card-heading">Rework the everyday.</h3>
+                  <p className="card-studio-sub">North Studio12 creators</p>
+                </div>
+
+                <div className="fashion-bottom-graphic">
+                  <img src="/assets/campaign_arch_3d.jpg" alt="3D Arch" className="arch-graphic-img" />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column Stack (Lifestyle + Technology) */}
+            <div className="spotlight-right-column">
+
+              {/* Top-Right Card: LIFESTYLE */}
+              <div className="spotlight-card card-lifestyle reveal">
+                <div className="lifestyle-top-row">
+                  <span className="pill-tag tag-lifestyle">LIFESTYLE • NEW</span>
+
+                  {/* Engagement Bar inside */}
+                  <div className="lifestyle-bar-wrapper">
+                    <div className="bar-track">
+                      <div className="bar-fill" style={{ width: '82%' }}></div>
+                    </div>
+                    <div className="bar-text-row">
+                      <span>Engagement</span>
+                      <strong>82%</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lifestyle-main-content">
+                  <div className="content-text-left">
+                    <div className="icon-circle sun-icon-bg">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E55B2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                      </svg>
+                    </div>
+                    <h3 className="card-heading">Slow mornings.</h3>
+                    <p className="card-studio-sub">Good Ground8 creators</p>
+                  </div>
+
+                  <div className="lifestyle-graphic-right">
+                    <img src="/assets/campaign_lifestyle_mug.jpg" alt="Lifestyle Mug" className="mug-graphic-img" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom-Right Card: TECHNOLOGY */}
+              <div className="spotlight-card card-technology reveal">
+                <div className="tech-top-row">
+                  <span className="pill-tag tag-tech">TECHNOLOGY • OPEN</span>
+
+                  {/* Filter tags */}
+                  <div className="tech-tag-filters">
+                    <span className="filter-pill purple-pill">✦ AI Match</span>
+                    <span className="filter-pill white-pill">Tech</span>
+                    <span className="filter-pill white-pill">Reviews</span>
+                  </div>
+                </div>
+
+                <div className="tech-main-content">
+                  <div className="content-text-left">
+                    <div className="icon-circle bolt-icon-bg">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                      </svg>
+                    </div>
+                    <h3 className="card-heading">Future, in your hands.</h3>
+                    <p className="card-studio-sub">Mono Labs15 creators</p>
+                  </div>
+
+                  <div className="tech-graphic-right">
+                    <img src="/assets/campaign_purple_glass.jpg" alt="Purple Glass 3D" className="glass-graphic-img" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       </section>
@@ -495,27 +759,126 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* ── STATS BLOCK ─────────────────────────────────────── */}
-      <div className="wrap" style={{ paddingTop: '120px', paddingBottom: '80px' }}>
-        <div className="stats reveal">
-          <div className="stat">
-            <strong>12,000+</strong>
-            <span>Creators</span>
-          </div>
-          <div className="stat">
-            <strong>847</strong>
-            <span>Campaigns</span>
-          </div>
-          <div className="stat">
-            <strong>₹2Cr+</strong>
-            <span>Paid Out</span>
-          </div>
-          <div className="stat">
-            <strong>320%</strong>
-            <span>Avg ROI</span>
+      {/* ── STATS BLOCK (REDESIGNED CARDS) ───────────────────── */}
+      <section className="stats-section" id="impact-stats">
+        <div className="wrap">
+          <div className="stats-cards-grid reveal">
+
+            {/* Card 1: CREATORS */}
+            <div className="stat-card">
+              <div className="stat-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E55B2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+
+              <div className="stat-val">{stats.displayCreators}</div>
+              <div className="stat-divider-line"></div>
+
+              <div className="stat-label">CREATORS</div>
+              <p className="stat-sub">Verified creators onboarded</p>
+
+              {/* Bottom Graphic: Soft Wave Curve */}
+              <div className="stat-bg-graphic graphic-wave">
+                <svg viewBox="0 0 240 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0 45 C 50 65 100 25 180 55 C 210 65 230 40 240 30 L 240 70 L 0 70 Z" fill="url(#stat-wave-grad)" />
+                  <path d="M0 45 C 50 65 100 25 180 55 C 210 65 230 40 240 30" stroke="#E55B2B" strokeWidth="1.2" strokeOpacity="0.3" fill="none" />
+                  <defs>
+                    <linearGradient id="stat-wave-grad" x1="0" y1="30" x2="0" y2="70" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#E55B2B" stopOpacity="0.2" />
+                      <stop offset="1" stopColor="#E55B2B" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+            </div>
+
+            {/* Card 2: BRANDS */}
+            <div className="stat-card">
+              <div className="stat-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E55B2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 21h18M3 7v14M21 7v14M6 11h4M6 15h4M14 11h4M14 15h4M9 3l3-2 3 2"></path>
+                </svg>
+              </div>
+
+              <div className="stat-val">{stats.displayBrands}</div>
+              <div className="stat-divider-line"></div>
+
+              <div className="stat-label">BRANDS</div>
+              <p className="stat-sub">Active brands & agency partners</p>
+
+              {/* Bottom Graphic: Rising Bar Chart Columns */}
+              <div className="stat-bg-graphic graphic-bars">
+                <div className="bar-col bar-1"></div>
+                <div className="bar-col bar-2"></div>
+                <div className="bar-col bar-3"></div>
+                <div className="bar-col bar-4"></div>
+                <div className="bar-col bar-5"></div>
+              </div>
+            </div>
+
+            {/* Card 3: CAMPAIGNS */}
+            <div className="stat-card">
+              <div className="stat-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E55B2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+              </div>
+
+              <div className="stat-val">{stats.displayCampaigns}</div>
+              <div className="stat-divider-line"></div>
+
+              <div className="stat-label">CAMPAIGNS</div>
+              <p className="stat-sub">Successful campaigns launched</p>
+
+              {/* Bottom Graphic: Dual Smooth Sine Lines */}
+              <div className="stat-bg-graphic graphic-lines">
+                <svg viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0 50 Q 60 10 120 40 T 240 20" stroke="#E55B2B" strokeWidth="1.5" strokeOpacity="0.45" fill="none" />
+                  <path d="M0 35 Q 70 55 140 25 T 240 45" stroke="#E55B2B" strokeWidth="1" strokeOpacity="0.25" fill="none" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Card 4: AVG ROI */}
+            <div className="stat-card">
+              <div className="stat-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E55B2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+              </div>
+
+              <div className="stat-val">320%</div>
+              <div className="stat-divider-line"></div>
+
+              <div className="stat-label">AVG ROI</div>
+              <p className="stat-sub">Average return on investment</p>
+
+              {/* Bottom Graphic: Growth Exponential Line + Gradient Area */}
+              <div className="stat-bg-graphic graphic-growth">
+                <svg viewBox="0 0 240 65" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M 0 60 Q 120 55 230 10 L 230 65 L 0 65 Z" fill="url(#roi-growth-grad)" />
+                  <path d="M 0 60 Q 120 55 230 10" stroke="#E55B2B" strokeWidth="2" strokeLinecap="round" fill="none" />
+                  <circle cx="230" cy="10" r="4.5" fill="#E55B2B" />
+                  <circle cx="230" cy="10" r="8" fill="#E55B2B" fillOpacity="0.25" />
+                  <defs>
+                    <linearGradient id="roi-growth-grad" x1="0" y1="10" x2="0" y2="65" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#E55B2B" stopOpacity="0.2" />
+                      <stop offset="1" stopColor="#E55B2B" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+            </div>
+
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ── TESTIMONIALS SECTION ────────────────────────────── */}
       <section className="testimonials-section" id="testimonials">
@@ -646,15 +1009,44 @@ export default function Landing() {
       {/* ── FINAL CTA SECTION ────────────────────────────────── */}
       <section className="final" id="join">
         <div className="wrap reveal">
-          <div className="eyebrow" style={{ color: 'var(--muted)' }}>Your next move</div>
-          <h2>Make something
-            <br /><em>worth talking about.</em></h2>
-          <p style={{ color: 'var(--muted)', fontSize: '16px', lineHeight: '1.6', maxWidth: '520px', margin: '20px 0 45px' }}>
-            Join a trusted ecosystem handling verified Indian creators and high-growth brand campaigns in one automated platform.
-          </p>
-          <div className="actions">
-            <button className="cta" onClick={() => nav('/register?role=creator')}>Join as Creator</button>
-            <button className="ghost" style={{ color: 'var(--ink)', borderColor: 'var(--line)' }} onClick={() => nav('/register?role=brand')}>Connect as Brand</button>
+          <div className="final-centered-card">
+            <div className="final-ambient-glow" />
+
+            <h2>
+              Make something <br />
+              <em>worth talking about.</em>
+            </h2>
+
+            <p className="final-subtext">
+              Join a trusted ecosystem handling verified Indian creators and high-growth brand campaigns in one automated platform.
+            </p>
+
+            <div className="final-actions-row">
+              <button className="final-primary-btn" onClick={() => nav('/register?role=creator')}>
+                <span>Join as Creator</span>
+                <ArrowRight size={16} />
+              </button>
+              <button className="final-secondary-btn" onClick={() => nav('/register?role=brand')}>
+                <span>Connect as Brand</span>
+              </button>
+            </div>
+
+            <div className="final-trust-bar">
+              <div className="trust-item">
+                <strong>12,500+</strong>
+                <span>Verified Creators</span>
+              </div>
+              <div className="trust-divider" />
+              <div className="trust-item">
+                <strong>₹4.2Cr+</strong>
+                <span>Campaign Value</span>
+              </div>
+              <div className="trust-divider" />
+              <div className="trust-item">
+                <strong>98.4%</strong>
+                <span>Match Accuracy</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -825,21 +1217,22 @@ export default function Landing() {
         @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
 
         :root {
-          --paper: #F9F5EE;
-          --paper2: #EFEAE0;
-          --ink: #121214;
-          --muted: #6B6A66;
-          --line: rgba(18, 18, 20, 0.08);
-          --acid: #E36B39;
-          --red: #E36B39;
-          --blue: #1D1E22;
-          --p: #E36B39;
+          --paper: #FAF7F2;
+          --paper2: #FAF7F2;
+          --ink: #111827;
+          --muted: #6B7280;
+          --line: rgba(17, 24, 39, 0.08);
+          --acid: #E55B2B;
+          --red: #E55B2B;
+          --blue: #111827;
+          --p: #E55B2B;
           --fb: "Figtree", sans-serif;
+          color-scheme: light !important;
         }
 
         #landing-page-root {
-          background: var(--paper);
-          color: var(--ink);
+          background: #FAF7F2 !important;
+          color: #111827 !important;
           min-height: 100vh;
           position: relative;
           overflow-x: hidden;
@@ -936,79 +1329,36 @@ export default function Landing() {
           z-index: 1000;
           padding: 22px 0;
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          color: #FFFFFF;
-        }
-
-        .nav.scrolled {
-          top: 15px !important;
-          left: 50% !important;
-          right: auto !important;
-          transform: translateX(-50%) !important;
-          width: calc(100% - 48px) !important;
-          max-width: 1200px !important;
-          background: rgba(18, 18, 20, 0.8) !important;
-          backdrop-filter: blur(20px) !important;
-          -webkit-backdrop-filter: blur(20px) !important;
-          border: 1px solid rgba(255, 255, 255, 0.1) !important;
-          border-radius: 9999px !important;
-          color: #FFFFFF !important;
-          padding: 10px 0 !important;
-          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .nav.scrolled .navin {
-          padding: 0 32px !important;
-        }
-
-        .nav.scrolled .logo {
-          color: #FFFFFF !important;
-        }
-
-        .nav.scrolled .links a {
-          color: rgba(255, 255, 255, 0.8) !important;
-        }
-
-        .nav.scrolled .links a:after {
-          background: #FFFFFF;
-        }
-
-        .nav.scrolled .navright .login {
-          color: rgba(255, 255, 255, 0.8) !important;
-        }
-
-        .nav.scrolled .cta {
-          background: var(--acid) !important;
-          color: #FFFFFF !important;
-          border-color: var(--acid) !important;
-        }
-
-        .nav.scrolled .cta:hover {
-          background: transparent !important;
-          color: var(--ink) !important;
+          color: #111827;
         }
 
         .navin {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          width: 100%;
         }
 
         .logo {
-          font-weight: 700 !important;
-          letter-spacing: -.05em !important;
-          font-size: 26px !important;
-          color: #FFFFFF;
-          transition: color 0.3s ease;
+          font-weight: 800 !important;
+          letter-spacing: -0.04em !important;
+          font-size: 24px !important;
+          color: #111827 !important;
+          text-decoration: none;
+          display: flex;
+          align-items: center;
         }
 
         .logo span {
+          font-family: "EB Garamond", Georgia, serif !important;
           font-style: italic !important;
           font-weight: 500 !important;
-          color: var(--acid) !important;
+          color: #E55B2B !important;
         }
 
         .links {
           display: flex;
+          align-items: center;
           gap: 32px;
           font-size: 14px;
           font-weight: 500;
@@ -1016,23 +1366,24 @@ export default function Landing() {
 
         .links a {
           position: relative;
-          color: rgba(255, 255, 255, 0.8);
-          transition: color 0.3s ease;
+          color: #4B5563 !important;
+          text-decoration: none;
+          transition: color 0.25s ease;
         }
 
         .links a:hover {
-          color: #FFFFFF !important;
+          color: #111827 !important;
         }
 
         .links a:after {
           content: "";
           position: absolute;
           left: 0;
-          bottom: -5px;
+          bottom: -4px;
           width: 0;
           height: 2px;
-          background: #FFFFFF;
-          transition: .25s cubic-bezier(0.16, 1, 0.3, 1);
+          background: #E55B2B;
+          transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .links a:hover:after {
@@ -1048,29 +1399,32 @@ export default function Landing() {
         }
 
         .navright .login {
-          color: rgba(255, 255, 255, 0.8);
-          transition: color 0.3s ease;
+          color: #4B5563 !important;
+          text-decoration: none;
+          font-weight: 600;
+          transition: color 0.25s ease;
         }
 
         .navright .login:hover {
-          color: #FFFFFF;
+          color: #111827 !important;
         }
 
         .cta {
-          background: var(--acid) !important;
+          background: #E55B2B !important;
           color: #FFFFFF !important;
-          border: 1px solid var(--acid) !important;
+          border: 1px solid #E55B2B !important;
           padding: 10px 22px !important;
           border-radius: 9999px !important;
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
           font-weight: 600 !important;
           letter-spacing: -0.01em;
+          box-shadow: 0 4px 14px rgba(229, 91, 43, 0.25);
         }
 
         .cta:hover {
-          background: transparent !important;
-          color: var(--acid) !important;
+          background: #D44A1B !important;
+          border-color: #D44A1B !important;
           transform: translateY(-1px);
         }
 
@@ -1078,173 +1432,1116 @@ export default function Landing() {
           display: none;
           background: none;
           border: 0;
-          font-size: 25px;
-          color: inherit;
+          font-size: 24px;
+          color: #111827;
           cursor: pointer;
         }
 
+        .mobile-links-menu {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: #FFFFFF;
+          border-bottom: 1px solid rgba(0,0,0,0.08);
+          padding: 20px 28px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .nav.scrolled {
+          top: 15px !important;
+          left: 50% !important;
+          right: auto !important;
+          transform: translateX(-50%) !important;
+          width: calc(100% - 48px) !important;
+          max-width: 1200px !important;
+          background: rgba(255, 255, 255, 0.92) !important;
+          backdrop-filter: blur(20px) !important;
+          -webkit-backdrop-filter: blur(20px) !important;
+          border: 1px solid rgba(0, 0, 0, 0.08) !important;
+          border-radius: 9999px !important;
+          color: #111827 !important;
+          padding: 10px 0 !important;
+          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .nav.scrolled .navin {
+          padding: 0 32px !important;
+        }
+
+        .nav.scrolled .logo {
+          color: #111827 !important;
+        }
+
+        .nav.scrolled .links a {
+          color: #374151 !important;
+        }
+
+        .nav.scrolled .links a:after {
+          background: #E55B2B;
+        }
+
+        .nav.scrolled .navright .login {
+          color: #374151 !important;
+        }
+
+        .nav.scrolled .cta {
+          background: #E55B2B !important;
+          color: #FFFFFF !important;
+          border-color: #E55B2B !important;
+        }
+
+        .nav.scrolled .cta:hover {
+          background: #D44A1B !important;
+          color: #FFFFFF !important;
+        }
+
         .hero {
-          min-height: auto;
-          padding-top: 180px;
-          padding-bottom: 100px;
+          background: #FAF7F2 !important;
+          color: #111827 !important;
+          padding-top: 150px;
+          padding-bottom: 90px;
           position: relative;
           overflow: hidden;
-          background: radial-gradient(circle at 80% 30%, rgba(227, 107, 57, 0.12) 0%, rgba(29, 30, 34, 0.2) 50%, transparent 100%), #0C0C0E !important;
-          color: #FFFFFF !important;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.04);
         }
 
         .hero-grid {
           display: grid;
-          grid-template-columns: 1.1fr 0.9fr;
-          gap: 60px;
+          grid-template-columns: 1.05fr 0.95fr;
+          gap: 40px;
           align-items: center;
         }
 
-        .eyebrow {
-          font-size: 12px !important;
-          text-transform: uppercase !important;
-          letter-spacing: .15em !important;
-          color: rgba(255, 255, 255, 0.5) !important;
-          margin-bottom: 24px !important;
-          font-weight: 600;
+        /* Pill Badge */
+        .hero-pill-badge {
+          display: inline-block;
+          padding: 6px 16px;
+          border-radius: 999px;
+          background: rgba(229, 91, 43, 0.06);
+          border: 1px solid rgba(229, 91, 43, 0.2);
+          color: #E55B2B;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 24px;
         }
 
+        /* Heading */
         #landing-page-root .hero h1.hero-title-serif {
-          font-family: "Figtree", sans-serif !important;
-          font-size: clamp(55px, 6.5vw, 95px) !important;
-          line-height: 0.95 !important;
-          letter-spacing: -0.05em !important;
+          font-family: "EB Garamond", Georgia, serif !important;
+          font-size: clamp(48px, 5.8vw, 76px) !important;
+          line-height: 1.06 !important;
+          letter-spacing: -0.02em !important;
           margin: 0 0 24px 0 !important;
-          font-weight: 700 !important;
-          color: #FFFFFF !important;
+          font-weight: 400 !important;
+          color: #111827 !important;
         }
 
         #landing-page-root .hero h1.hero-title-serif em {
           font-family: "EB Garamond", Georgia, serif !important;
           font-style: italic !important;
           font-weight: 400 !important;
-          letter-spacing: -0.03em !important;
-          color: var(--acid) !important;
+          color: #E55B2B !important;
         }
 
+        /* Hero Subhead */
         .hero-copy {
-          max-width: 460px !important;
-          margin: 0 0 35px 0 !important;
-          font-size: 17px !important;
+          max-width: 450px !important;
+          margin: 0 0 32px 0 !important;
+          font-size: 16px !important;
           line-height: 1.6 !important;
-          color: rgba(255, 255, 255, 0.7) !important;
+          color: #4B5563 !important;
           font-weight: 400;
         }
 
-        .actions {
+        /* Buttons Row */
+        .hero-actions {
           display: flex;
           gap: 16px;
           align-items: center;
+          margin-bottom: 40px;
         }
 
-        .hero .cta {
-          background: var(--acid) !important;
-          border-color: var(--acid) !important;
-          color: #FFFFFF !important;
-        }
-
-        .hero .cta:hover {
-          background: transparent !important;
-          border-color: #FFFFFF !important;
-          color: #FFFFFF !important;
-          box-shadow: 0 8px 25px rgba(227, 107, 57, 0.2) !important;
-        }
-
-        .ghost {
-          border: 1px solid var(--line) !important;
-          padding: 10px 22px !important;
-          background: transparent !important;
-          border-radius: 9999px !important;
+        .cta-primary {
+          background: #E55B2B;
+          color: #FFFFFF;
+          border: none;
+          padding: 14px 28px;
+          border-radius: 999px;
+          font-size: 15px;
+          font-weight: 600;
           cursor: pointer;
-          color: var(--ink) !important;
-          font-weight: 600 !important;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          box-shadow: 0 10px 25px -5px rgba(229, 91, 43, 0.4);
+          transition: all 0.3s ease;
         }
 
-        .ghost:hover {
-          background: var(--ink) !important;
-          color: var(--paper) !important;
-          border-color: var(--ink) !important;
+        .cta-primary:hover {
+          background: #D44A1B;
+          transform: translateY(-2px);
+          box-shadow: 0 14px 30px -5px rgba(229, 91, 43, 0.5);
+        }
+
+        .cta-secondary {
+          background: #FFFFFF;
+          color: #1F2937;
+          border: 1px solid #E5E7EB;
+          padding: 13px 24px;
+          border-radius: 999px;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          transition: all 0.3s ease;
+        }
+
+        .cta-secondary:hover {
+          background: #F9FAFB;
+          border-color: #D1D5DB;
           transform: translateY(-1px);
         }
 
-        .hero .ghost {
-          border: 1px solid rgba(255, 255, 255, 0.15) !important;
-          color: #FFFFFF !important;
+        .play-icon-circle {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 1px solid #D1D5DB;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding-left: 2px;
         }
 
-        .hero .ghost:hover {
-          background: #FFFFFF !important;
-          color: #0C0C0E !important;
-          border-color: #FFFFFF !important;
-          transform: translateY(-1px);
+        /* Social Proof Footer */
+        .hero-social-proof {
+          display: flex;
+          align-items: center;
+          gap: 14px;
         }
 
-        .hero-art {
-          height: 540px;
+        .avatar-stack {
+          display: flex;
+          align-items: center;
+        }
+
+        .avatar-img {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 2px solid #FAF7F2;
+          object-fit: cover;
+          margin-left: -10px;
+        }
+
+        .avatar-img:first-child {
+          margin-left: 0;
+        }
+
+        .social-proof-text {
+          font-size: 13px;
+          color: #6B7280;
+          font-weight: 500;
+        }
+
+        .social-proof-text strong {
+          color: #E55B2B;
+          font-weight: 700;
+        }
+
+        /* Hero Art Right Column Container */
+        .hero-art-container {
           position: relative;
           width: 100%;
+          height: 520px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        @keyframes pulseFlow {
-          0% { stroke-dashoffset: 210; }
-          100% { stroke-dashoffset: 0; }
-        }
-
-        .pulse-path {
-          animation: pulseFlow 4s linear infinite;
-        }
-
-        @keyframes floatArt {
-          0% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(0.5deg); }
-          100% { transform: translateY(0px) rotate(0deg); }
-        }
-
-        @keyframes floatPaper {
-          0% { transform: translate(-10px, -15px) rotate(2deg); }
-          50% { transform: translate(-12px, -20px) rotate(2.5deg); }
-          100% { transform: translate(-10px, -15px) rotate(2deg); }
-        }
-
-        .art-paper {
+        /* Backdrop Shapes */
+        .hero-blob-backdrop {
           position: absolute;
-          width: 85%;
-          height: 380px;
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-radius: 16px;
-          box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
-          transform: translate(-10px, -15px);
+          width: 110%;
+          height: 110%;
+          top: -5%;
+          right: -5%;
+          pointer-events: none;
           z-index: 1;
-          animation: floatPaper 8s ease-in-out infinite;
         }
 
-        .art-image {
+        .blob-svg {
+          width: 100%;
+          height: 100%;
+          filter: drop-shadow(0 15px 30px rgba(229, 91, 43, 0.06));
+        }
+
+        .hero-spark-star {
           position: absolute;
-          width: 80%;
-          height: 360px;
-          background: #141417;
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 12px;
-          overflow: hidden;
+          top: 35px;
+          right: 55px;
           z-index: 2;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+          animation: pulseSpark 4s infinite ease-in-out;
+        }
+
+        @keyframes pulseSpark {
+          0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.75; }
+          50% { transform: scale(1.15) rotate(15deg); opacity: 1; }
+        }
+
+        /* Overlapping Cards Container */
+        .hero-cards-wrapper {
+          position: relative;
+          width: 520px;
+          height: 480px;
+          z-index: 2;
+        }
+
+        .hero-card {
+          position: absolute;
+          border-radius: 20px;
+          background: #FFFFFF;
+          box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0,0,0,0.05);
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hero-card:hover {
+          transform: translateY(-4px) scale(1.02);
+          z-index: 30 !important;
+        }
+
+        /* Card 1: Top Left Creator Card */
+        .card-creator-top {
+          top: 10px;
+          left: 35px;
+          width: 200px;
+          height: 240px;
+          z-index: 3;
+          overflow: hidden;
+        }
+
+        .creator-img-wrapper {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+
+        .creator-photo {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .card-tag {
+          position: absolute;
+          top: 12px;
+          padding: 4px 12px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .tag-orange {
+          left: 12px;
+          background: #E55B2B;
+          color: #FFFFFF;
+        }
+
+        .tag-dark {
+          right: 12px;
+          background: #18181B;
+          color: #FFFFFF;
+        }
+
+        .card-stats-row {
+          position: absolute;
+          bottom: 12px;
+          left: 12px;
+          display: flex;
+          gap: 6px;
+        }
+
+        .stat-pill {
+          background: rgba(255, 255, 255, 0.92);
+          backdrop-filter: blur(8px);
+          padding: 4px 10px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 700;
+          color: #111827;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .heart-icon {
+          color: #EF4444;
+          font-size: 10px;
+        }
+
+        .star-icon {
+          color: #F59E0B;
+          font-size: 10px;
+        }
+
+        /* Card 2: Center Floating Campaign Card */
+        .card-campaign-center {
+          top: 45px;
+          right: 35px;
+          width: 310px;
+          padding: 20px;
+          z-index: 10;
+          border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .campaign-card-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 16px;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .new-camp-icon-bg {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          background: #FDF2EA;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .new-camp-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: #111827;
+        }
+
+        .status-badge-active {
+          background: #ECFDF5;
+          color: #10B981;
+          padding: 4px 10px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .campaign-name {
+          font-size: 16px;
+          font-weight: 700;
+          color: #111827;
+          margin: 0 0 2px 0;
+        }
+
+        .campaign-category {
+          font-size: 12px;
+          color: #6B7280;
+          margin: 0 0 16px 0;
+        }
+
+        .progress-container {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+
+        .progress-bar-track {
+          flex: 1;
+          height: 6px;
+          background: #F3F4F6;
+          border-radius: 999px;
+          overflow: hidden;
+        }
+
+        .progress-bar-fill {
+          height: 100%;
+          background: #E55B2B;
+          border-radius: 999px;
+        }
+
+        .progress-text {
+          font-size: 11px;
+          font-weight: 700;
+          color: #4B5563;
+        }
+
+        .campaign-card-divider {
+          height: 1px;
+          background: #F3F4F6;
+          margin-bottom: 14px;
+        }
+
+        .campaign-metrics-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .metric-label {
+          display: block;
+          font-size: 11px;
+          color: #9CA3AF;
+          margin-bottom: 2px;
+        }
+
+        .metric-value {
+          font-size: 14px;
+          font-weight: 700;
+          color: #111827;
+        }
+
+        /* Card 3: Floating Action Circle Button */
+        .card-action-circle {
+          top: 75px;
+          right: 0px;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: #18181B;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 15;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+          cursor: pointer;
+        }
+
+        /* Card 4: Match Notification Pill */
+        .card-match-pill {
+          bottom: 75px;
+          left: 115px;
+          padding: 12px 18px;
+          border-radius: 16px;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 20px 40px -10px rgba(0,0,0,0.12);
+          border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .match-check-circle {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #E55B2B;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .match-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: #111827;
+          line-height: 1.2;
+        }
+
+        .match-sub {
+          font-size: 11px;
+          color: #6B7280;
+          margin-top: 1px;
+        }
+
+        .match-chevron {
+          font-size: 18px;
+          color: #9CA3AF;
+          margin-left: 6px;
+        }
+
+        /* Card 5: Bottom-Right Creator Card */
+        .card-creator-bottom {
+          bottom: 20px;
+          right: 15px;
+          width: 190px;
+          height: 220px;
+          z-index: 5;
+          overflow: hidden;
+        }
+
+        /* Floating Micro-Animations */
+        @keyframes floatSlow1 {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes floatSlow2 {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes floatSlow3 {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+
+        .float-anim-1 { animation: floatSlow1 6s infinite ease-in-out; }
+        .float-anim-2 { animation: floatSlow2 7s infinite ease-in-out 1s; }
+        .float-anim-3 { animation: floatSlow3 5s infinite ease-in-out 0.5s; }
+        .float-anim-4 { animation: floatSlow1 6.5s infinite ease-in-out 1.5s; }
+        .float-anim-5 { animation: floatSlow2 7.5s infinite ease-in-out 2s; }
+
+        /* ── IMPACT STATS CARDS SECTION (RESERVED HIGH FIDELITY DESIGN) ── */
+        .stats-section {
+          padding: 100px 0 60px 0;
+          background: #FAF7F2;
+        }
+
+        .stats-cards-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 24px;
+        }
+
+        .stat-card {
+          background: #FFFFFF;
+          border-radius: 24px;
+          padding: 36px 20px 0 20px;
+          border: 1px solid rgba(0, 0, 0, 0.04);
+          box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02);
+          position: relative;
+          overflow: hidden;
           display: flex;
           flex-direction: column;
-          padding: 24px;
-          animation: floatArt 8s ease-in-out infinite;
+          align-items: center;
+          text-align: center;
+          height: 350px;
+          transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
+        }
+
+        .stat-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 25px 45px -12px rgba(229, 91, 43, 0.15), 0 4px 12px rgba(0, 0, 0, 0.03);
+          border-color: rgba(229, 91, 43, 0.3);
+        }
+
+        .stat-icon-wrapper {
+          width: 54px;
+          height: 54px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 50% 50%, #FDF1EA 0%, #FFF8F3 100%);
+          border: 1px solid rgba(229, 91, 43, 0.12);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 12px rgba(229, 91, 43, 0.08);
+          flex-shrink: 0;
+        }
+
+        .stat-val {
+          font-family: "Figtree", sans-serif !important;
+          font-size: clamp(32px, 3.2vw, 42px);
+          font-weight: 800;
+          color: #E55B2B;
+          letter-spacing: -0.03em;
+          line-height: 1;
+        }
+
+        .stat-divider-line {
+          width: 24px;
+          height: 3px;
+          background: #E55B2B;
+          border-radius: 99px;
+          margin: 14px auto 14px auto;
+          opacity: 0.85;
+        }
+
+        .stat-label {
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.1em;
+          color: #111827;
+          text-transform: uppercase;
+          margin-bottom: 6px;
+        }
+
+        .stat-sub {
+          font-size: 13px;
+          color: #6B7280;
+          margin: 0;
+          line-height: 1.4;
+          max-width: 170px;
+          font-weight: 400;
+        }
+
+        /* Bottom Graphic Elements */
+        .stat-bg-graphic {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          pointer-events: none;
+        }
+
+        .stat-bg-graphic svg {
+          width: 100%;
+          display: block;
+        }
+
+        /* Card 2 Bars Graphic */
+        .graphic-bars {
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          gap: 8px;
+          height: 48px;
+          padding-bottom: 8px;
+        }
+
+        .bar-col {
+          width: 14px;
+          border-radius: 4px 4px 0 0;
+          background: rgba(229, 91, 43, 0.15);
+          transition: height 0.3s ease, background 0.3s ease;
+        }
+
+        .bar-1 { height: 12px; }
+        .bar-2 { height: 20px; }
+        .bar-3 { height: 28px; }
+        .bar-4 { height: 36px; }
+        .bar-5 { height: 48px; background: #E55B2B; box-shadow: 0 -2px 10px rgba(229, 91, 43, 0.4); }
+
+        /* Ensure Stat Cards ALWAYS render crisp porcelain white in all light/dark themes */
+        .stats-section {
+          background: #FAF7F2 !important;
+          color: #111827 !important;
+          padding: 80px 0 60px 0 !important;
+        }
+
+        .stat-card {
+          background: #FFFFFF !important;
+          color: #111827 !important;
+          border: 1px solid rgba(0, 0, 0, 0.05) !important;
+          box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02) !important;
+        }
+
+        .stat-val {
+          color: #E55B2B !important;
+        }
+
+        .stats-section .stat-card .stat-label,
+        .stat-card .stat-label,
+        .stat-label {
+          color: #111827 !important;
+          font-weight: 800 !important;
+          opacity: 1 !important;
+        }
+
+        .stats-section .stat-card .stat-sub,
+        .stat-card .stat-sub,
+        .stat-sub {
+          color: #4B5563 !important;
+          font-weight: 500 !important;
+          opacity: 1 !important;
+        }
+
+        /* ── CAMPAIGNS SPOTLIGHT SECTION STYLES ── */
+        .campaigns-spotlight-section {
+          padding: 120px 0 !important;
+          background: #FAF7F2 !important;
+          color: #111827 !important;
+        }
+
+        .spotlight-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          margin-bottom: 50px;
+        }
+
+        .spotlight-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          border-radius: 999px;
+          background: rgba(229, 91, 43, 0.08);
+          color: #E55B2B;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 18px;
+        }
+
+        .badge-dot {
+          font-size: 8px;
+        }
+
+        #landing-page-root .spotlight-title {
+          font-family: "Figtree", sans-serif !important;
+          font-size: clamp(38px, 4.2vw, 54px) !important;
+          font-weight: 800 !important;
+          line-height: 1.08 !important;
+          color: #111827 !important;
+          letter-spacing: -0.03em !important;
+          margin: 0 0 16px 0 !important;
+        }
+
+        #landing-page-root .spotlight-title em {
+          font-family: "EB Garamond", Georgia, serif !important;
+          font-style: italic !important;
+          font-weight: 400 !important;
+          color: #E55B2B !important;
+        }
+
+        .spotlight-sub {
+          font-size: 16px;
+          color: #6B7280;
+          max-width: 480px;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        .spotlight-header-right {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: #FFFFFF;
+          padding: 12px 20px;
+          border-radius: 999px;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+        }
+
+        .spark-circle-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #FDF1EA;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .spark-text {
+          font-size: 12px;
+          line-height: 1.3;
+          color: #374151;
+          font-weight: 600;
+        }
+
+        /* 3-Card Grid Split Layout */
+        .spotlight-cards-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.05fr;
+          gap: 28px;
+        }
+
+        .spotlight-card {
+          border-radius: 24px;
+          padding: 32px;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+          transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .spotlight-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Card 1: Fashion (Left Tall) */
+        .card-fashion {
+          background: linear-gradient(135deg, #FAF5EE 0%, #F7EFE4 100%);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          min-height: 540px;
+        }
+
+        .pill-tag {
+          display: inline-block;
+          padding: 6px 14px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          background: #FFFFFF;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .tag-fashion { color: #E55B2B; }
+        .tag-lifestyle { color: #E55B2B; }
+        .tag-tech { color: #7C3AED; }
+
+        .fashion-inner-card {
+          background: #FFFFFF;
+          border-radius: 20px;
+          padding: 16px 20px;
+          margin: 24px 0;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+        }
+
+        .match-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 0;
+          border-bottom: 1px solid #F3F4F6;
+        }
+
+        .match-row:last-child {
+          border-bottom: none;
+        }
+
+        .match-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        .match-info {
+          flex: 1;
+          margin-left: 12px;
+        }
+
+        .match-name {
+          font-size: 13px;
+          font-weight: 700;
+          color: #111827;
+        }
+
+        .match-niche {
+          font-size: 11px;
+          color: #6B7280;
+        }
+
+        .match-score-pill {
+          background: #FDF2EA;
+          color: #E55B2B;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 999px;
+        }
+
+        .fashion-card-bottom {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          position: relative;
+          min-height: 160px;
+          margin-top: 24px;
+        }
+
+        .fashion-bottom-left {
+          position: relative;
+          z-index: 5;
+          max-width: 58%;
+        }
+
+        .action-circle-btn {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: #E55B2B;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 16px;
+          box-shadow: 0 8px 20px rgba(229, 91, 43, 0.35);
+          cursor: pointer;
+          transition: transform 0.3s ease;
+        }
+
+        .action-circle-btn:hover {
+          transform: scale(1.08);
+        }
+
+        .card-heading {
+          font-size: 22px;
+          font-weight: 800;
+          color: #111827;
+          margin: 0 0 4px 0;
+          letter-spacing: -0.02em;
+          line-height: 1.2;
+        }
+
+        .card-studio-sub {
+          font-size: 13px;
+          color: #6B7280;
+          margin: 0;
+        }
+
+        .arch-graphic-img {
+          width: 170px;
+          height: 170px;
+          object-fit: cover;
+          border-radius: 20px 0 0 0;
+          position: absolute;
+          bottom: -32px;
+          right: -32px;
+          z-index: 1;
+          pointer-events: none;
+          box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Right Column (Stack) */
+        .spotlight-right-column {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+
+        /* Card 2: Lifestyle */
+        .card-lifestyle {
+          background: linear-gradient(135deg, #FFF5ED 0%, #FDF0E6 100%);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          min-height: 258px;
+          position: relative;
+        }
+
+        .lifestyle-top-row, .tech-top-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: relative;
+          z-index: 5;
+        }
+
+        .lifestyle-bar-wrapper {
+          background: #FFFFFF;
+          padding: 8px 16px;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          width: 210px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .bar-track {
+          height: 5px;
+          background: #F3F4F6;
+          border-radius: 999px;
+          overflow: hidden;
+        }
+
+        .bar-fill {
+          height: 100%;
+          background: #E55B2B;
+          border-radius: 999px;
+        }
+
+        .bar-text-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 11px;
+          color: #6B7280;
+        }
+
+        .lifestyle-main-content, .tech-main-content {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          position: relative;
+          z-index: 5;
+          min-height: 110px;
+          margin-top: 16px;
+        }
+
+        .content-text-left {
+          position: relative;
+          z-index: 5;
+          max-width: 58%;
+        }
+
+        .icon-circle {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 12px;
+        }
+
+        .sun-icon-bg {
+          background: #FFFFFF;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .mug-graphic-img, .glass-graphic-img {
+          width: 140px;
+          height: 140px;
+          object-fit: cover;
+          border-radius: 20px 0 0 0;
+          position: absolute;
+          bottom: -32px;
+          right: -32px;
+          z-index: 1;
+          pointer-events: none;
+          box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Card 3: Technology */
+        .card-technology {
+          background: linear-gradient(135deg, #F3F0FF 0%, #EBE5FF 100%);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          min-height: 258px;
+          position: relative;
+        }
+
+        .tech-tag-filters {
+          display: flex;
+          gap: 6px;
+        }
+
+        .filter-pill {
+          padding: 6px 12px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .purple-pill {
+          background: rgba(124, 58, 237, 0.1);
+          color: #7C3AED;
+        }
+
+        .white-pill {
+          background: #FFFFFF;
+          color: #374151;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .bolt-icon-bg {
+          background: #FFFFFF;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .stat span {
+          display: block;
+          margin-top: 12px;
+          color: var(--muted);
+          font-size: 13px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: .12em;
         }
 
         /* Ambient matched glow for Wispr Flow theme */
@@ -1414,7 +2711,7 @@ export default function Landing() {
         }
 
         .process {
-          padding: 120px 0;
+          padding: 130px 0 !important;
           border-top: 1px solid var(--line);
         }
 
@@ -1800,18 +3097,18 @@ export default function Landing() {
         #landing-page-root .testimonials-section {
           background: var(--paper2) !important;
           color: var(--ink) !important;
-          padding: 140px 0 !important;
-          border-top-left-radius: 80px;
-          border-top-right-radius: 80px;
+          padding: 110px 0 120px 0 !important;
+          border-top-left-radius: 60px;
+          border-top-right-radius: 60px;
           overflow: hidden;
-          margin-top: 60px;
+          margin-top: 70px !important;
         }
 
         #landing-page-root .eyebrow-container {
           display: flex !important;
           align-items: center !important;
           gap: 12px !important;
-          margin-bottom: 60px !important;
+          margin-bottom: 36px !important;
         }
 
         #landing-page-root .eyebrow-line {
@@ -1835,7 +3132,7 @@ export default function Landing() {
           display: flex;
           flex-direction: column;
           gap: 28px;
-          margin-top: 50px;
+          margin-top: 32px;
           width: 100vw;
           position: relative;
           left: 50%;
@@ -2030,13 +3327,13 @@ export default function Landing() {
         }
 
         .faq {
-          padding: 90px 0 150px;
+          padding: 130px 0 130px !important;
           border-top: 1px solid var(--line);
         }
 
         .faq-list {
           max-width: 900px;
-          margin: 60px auto 0;
+          margin: 60px auto 0 !important;
         }
 
         .faq-item {
@@ -2083,60 +3380,352 @@ export default function Landing() {
           transform: rotate(45deg);
         }
 
+        /* ── CENTERED FINAL CTA SECTION STYLES ── */
         .final {
           background: #0C0C0E !important;
           color: #FFFFFF !important;
-          padding: 140px 0;
-          border-top-left-radius: 80px;
-          border-top-right-radius: 80px;
+          padding: 130px 0 !important;
+          border-top-left-radius: 60px;
+          border-top-right-radius: 60px;
           overflow: hidden;
+          position: relative;
+        }
+
+        .final-centered-card {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          max-width: 900px;
+          margin: 0 auto;
+          z-index: 5;
+        }
+
+        .final-ambient-glow {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 600px;
+          height: 400px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(229, 91, 43, 0.18) 0%, rgba(245, 166, 35, 0.05) 50%, transparent 70%);
+          filter: blur(60px);
+          pointer-events: none;
+        }
+
+        .final-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 16px;
+          border-radius: 999px;
+          background: rgba(229, 91, 43, 0.12);
+          border: 1px solid rgba(229, 91, 43, 0.25);
+          color: #E55B2B;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 24px;
         }
 
         #landing-page-root .final h2 {
-          font-size: clamp(48px, 6.5vw, 92px) !important;
+          font-size: clamp(42px, 5.5vw, 76px) !important;
           line-height: 1.05 !important;
-          letter-spacing: -.05em !important;
-          max-width: 1000px !important;
-          margin: 0 0 40px !important;
+          letter-spacing: -0.03em !important;
+          margin: 0 0 20px 0 !important;
           font-family: "Figtree", sans-serif !important;
-          font-weight: 700 !important;
+          font-weight: 800 !important;
+          color: #FFFFFF !important;
+          text-align: center !important;
         }
 
         #landing-page-root .final h2 em {
           font-family: "EB Garamond", Georgia, serif !important;
           font-style: italic !important;
           font-weight: 400 !important;
-          color: var(--acid) !important;
+          color: #E55B2B !important;
         }
 
-        .final .cta {
-          background: var(--acid) !important;
-          color: #FFFFFF !important;
-          border-color: var(--acid) !important;
+        .final-subtext {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 17px;
+          line-height: 1.6;
+          max-width: 580px;
+          margin: 0 0 36px 0;
+          text-align: center;
         }
 
-        .final .cta:hover {
-          background: transparent !important;
-          color: #FFFFFF !important;
-          border-color: #FFFFFF !important;
+        .final-actions-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          flex-wrap: wrap;
+          margin-bottom: 48px;
         }
 
-        .final .ghost {
-          border-color: rgba(255, 255, 255, 0.15) !important;
-          color: #FFFFFF !important;
+        .final-primary-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 16px 36px;
+          border-radius: 999px;
+          background: #E55B2B;
+          color: #FFFFFF;
+          font-size: 15px;
+          font-weight: 700;
+          border: none;
+          cursor: pointer;
+          box-shadow: 0 10px 25px rgba(229, 91, 43, 0.4);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .final .ghost:hover {
-          background: #FFFFFF !important;
-          color: #0C0C0E !important;
-          border-color: #FFFFFF !important;
+        .final-primary-btn:hover {
+          transform: translateY(-3px);
+          background: #F06837;
+          box-shadow: 0 16px 32px rgba(229, 91, 43, 0.5);
         }
+
+        .final-secondary-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 16px 32px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.06);
+          color: #FFFFFF;
+          font-size: 15px;
+          font-weight: 600;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          cursor: pointer;
+          backdrop-filter: blur(12px);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .final-secondary-btn:hover {
+          background: #FFFFFF;
+          color: #0C0C0E;
+          border-color: #FFFFFF;
+          transform: translateY(-3px);
+        }
+
+        .final-trust-bar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 40px;
+          padding-top: 28px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          width: 100%;
+          max-width: 720px;
+        }
+
+        .trust-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+
+        .trust-item strong {
+          font-size: 20px;
+          font-weight: 800;
+          color: #FFFFFF;
+        }
+
+        .trust-item span {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.5);
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          margin-top: 3px;
+        }
+
+        .trust-divider {
+          width: 1px;
+          height: 32px;
+          background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Right Column Creative Card Styles */
+        .final-right-creative-card {
+          position: relative;
+        }
+
+        .creative-card-glow {
+          position: absolute;
+          inset: -20px;
+          border-radius: 36px;
+          background: radial-gradient(circle, rgba(229, 91, 43, 0.25) 0%, rgba(245, 166, 35, 0.08) 50%, transparent 70%);
+          filter: blur(40px);
+          pointer-events: none;
+        }
+
+        .creative-glass-card {
+          position: relative;
+          background: linear-gradient(145deg, rgba(30, 27, 36, 0.8) 0%, rgba(18, 16, 22, 0.9) 100%);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 28px;
+          padding: 24px;
+          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(20px);
+        }
+
+        .glass-card-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-bottom: 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          margin-bottom: 20px;
+        }
+
+        .window-dots {
+          display: flex;
+          gap: 6px;
+        }
+
+        .dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+        }
+
+        .dot-red { background: #FF5F56; }
+        .dot-yellow { background: #FFBD2E; }
+        .dot-green { background: #27C93F; }
+
+        .live-pill {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 10px;
+          font-weight: 800;
+          color: #E55B2B;
+          letter-spacing: 0.08em;
+        }
+
+        .pulse-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #E55B2B;
+          box-shadow: 0 0 8px #E55B2B;
+          animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+
+        .stream-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 14px;
+        }
+
+        .stream-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: #FFFFFF;
+        }
+
+        .stream-time {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        .creator-stream-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 16px;
+          padding: 12px 14px;
+          margin-bottom: 12px;
+          transition: all 0.3s ease;
+        }
+
+        .creator-stream-item.active-glow {
+          background: rgba(229, 91, 43, 0.08);
+          border-color: rgba(229, 91, 43, 0.25);
+          box-shadow: 0 8px 20px rgba(229, 91, 43, 0.12);
+        }
+
+        .stream-avatar {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        .stream-info {
+          flex: 1;
+        }
+
+        .stream-name {
+          font-size: 13px;
+          font-weight: 700;
+          color: #FFFFFF;
+        }
+
+        .stream-meta {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.5);
+          margin-top: 2px;
+        }
+
+        .stream-badge {
+          font-size: 11px;
+          font-weight: 700;
+          color: #10B981;
+          background: rgba(16, 185, 129, 0.12);
+          padding: 4px 10px;
+          border-radius: 999px;
+        }
+
+        .orange-badge {
+          color: #E55B2B;
+          background: rgba(229, 91, 43, 0.15);
+        }
+
+        .glass-stat-row {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .g-stat {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .g-lbl {
+          font-size: 10.5px;
+          color: rgba(255, 255, 255, 0.4);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .g-val {
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #FFFFFF;
+          margin-top: 2px;
+        }
+
+        .align-right { text-align: right; }
 
         footer {
           background: #0C0C0E !important;
           color: rgba(255, 255, 255, 0.8) !important;
           border-top: 1px solid rgba(255, 255, 255, 0.05);
-          padding: 100px 0 50px;
+          padding: 100px 0 50px !important;
         }
 
         .footgrid {
@@ -2186,8 +3775,8 @@ export default function Landing() {
           display: flex;
           justify-content: space-between;
           border-top: 1px solid rgba(255, 255, 255, 0.08);
-          margin-top: 80px;
-          padding-top: 28px;
+          margin-top: 40px !important;
+          padding-top: 24px;
           color: rgba(255, 255, 255, 0.4);
           font-size: 13px;
         }
@@ -2264,8 +3853,8 @@ export default function Landing() {
 
         /* ── RESPONSIVENESS OVERRIDES (MAX-WIDTH: 1100PX) ── */
         @media(max-width:1100px){
-          .links, .navright .login { display: none; }
-          .menu { display: block; }
+          .links, .navright .login { display: none !important; }
+          .menu { display: block !important; }
 
           .nav.scrolled {
             width: calc(100% - 32px) !important;
@@ -2276,105 +3865,229 @@ export default function Landing() {
           .nav.scrolled .navin {
             padding: 0 24px !important;
           }
-          .hero { min-height: auto; padding-top: 120px; padding-bottom: 70px; }
+          .hero { min-height: auto; padding-top: 120px; padding-bottom: 60px; }
           .hero-grid { grid-template-columns: 1fr; gap: 40px; }
-          .hero-art { height: 520px; max-width: 480px; margin: 0 auto; }
-          .art-image { right: 35px; width: 82%; height: 420px; }
-          .art-paper { right: 10px; width: 90%; height: 450px; }
-          .orbit { right: -5px; }
-          .sticker { left: 0; }
-          
+          .hero-art-container { height: 440px; max-width: 100%; margin: 0 auto; overflow: hidden; }
+          .hero-cards-wrapper { transform: scale(0.85); transform-origin: center center; }
+
+          .spotlight-cards-grid {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+          .final-grid-layout {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+          }
+          .final-trust-bar {
+            flex-wrap: wrap !important;
+            gap: 16px !important;
+          }
+          .card-fashion {
+            min-height: auto !important;
+          }
+          .spotlight-header {
+            flex-direction: column !important;
+            gap: 20px !important;
+          }
+
+          .stats-cards-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 20px !important;
+          }
+
           .step { grid-template-columns: 60px 1fr; gap: 15px; }
           .step p { grid-column: 2; }
           #landing-page-root .step h3 { font-size: 26px !important; }
           
           #landing-page-root .split {
             grid-template-columns: 1fr !important;
-            margin-top: 100px !important;
-            border-top-left-radius: 16px !important;
-            border-top-right-radius: 16px !important;
-            border-bottom-left-radius: 16px !important;
-            border-bottom-right-radius: 16px !important;
+            margin-top: 80px !important;
           }
-          #landing-page-root .panel { min-height: 560px !important; padding: 60px 28px !important; }
-          #landing-page-root .campaign-layout { grid-template-columns: 1fr !important; }
-          #landing-page-root .campaign { min-height: 280px !important; }
-          #landing-page-root .campaign.big { min-height: 280px !important; }
-          #landing-page-root .campaign.two { min-height: 280px !important; }
-          #landing-page-root .campaign.three { min-height: 280px !important; }
-          #landing-page-root .stats { grid-template-columns: 1fr 1fr !important; }
-          #landing-page-root .stat:nth-child(2) { border-right: 0 !important; }
-          #landing-page-root .stat:nth-child(-n+2) { border-bottom: 1px solid var(--line) !important; }
+          #landing-page-root .panel { min-height: 480px !important; padding: 50px 24px !important; }
           #landing-page-root .footgrid { grid-template-columns: 1fr 1fr !important; }
-          #landing-page-root .testimonials-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
         }
 
         /* ── RESPONSIVENESS OVERRIDES (MAX-WIDTH: 600PX) ── */
         @media(max-width: 600px){
-          .wrap { padding: 0 20px; }
+          .wrap { padding: 0 16px; }
           .navright .cta, .navright .login { display: none !important; }
+          
+          .hero { padding-top: 90px; padding-bottom: 20px; overflow: hidden; }
+          .hero-art-container {
+            height: 360px !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 15px auto 0 auto !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            position: relative !important;
+            overflow: visible !important;
+          }
+          .hero-cards-wrapper {
+            position: absolute !important;
+            left: 50% !important;
+            top: 52% !important;
+            transform: translate(-50%, -50%) scale(0.56) !important;
+            transform-origin: center center !important;
+            margin: 0 !important;
+            width: 520px !important;
+            height: 480px !important;
+          }
+          .hero-blob-backdrop {
+            position: absolute !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) scale(0.80) !important;
+            width: 100% !important;
+            height: 100% !important;
+          }
+          
+          .hero-actions {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            width: 100% !important;
+            gap: 10px !important;
+          }
+          .cta-primary, .cta-secondary {
+            width: 100% !important;
+            justify-content: center !important;
+            padding: 14px 20px !important;
+            font-size: 15px !important;
+          }
+
+          .hero-social-proof {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 10px !important;
+          }
+
+          #landing-page-root .hero h1.hero-title-serif {
+            font-size: clamp(36px, 10.5vw, 52px) !important;
+            line-height: 1.08 !important;
+            font-weight: 700 !important;
+          }
+          #landing-page-root .hero h1.hero-title-serif em {
+            font-weight: 700 !important;
+          }
+
+        @media(max-width: 440px){
+          .hero-art-container {
+            height: 310px !important;
+          }
+          .hero-cards-wrapper {
+            transform: translate(-50%, -50%) scale(0.48) !important;
+            top: 52% !important;
+          }
+        }
+
+          /* How It Works Steps on Mobile */
+          .step {
+            grid-template-columns: 40px 1fr !important;
+            gap: 12px !important;
+            padding: 24px 0 !important;
+          }
+          .step h3 {
+            font-size: 20px !important;
+            grid-column: 2 !important;
+          }
+          .step p {
+            grid-column: 2 !important;
+            font-size: 14px !important;
+            margin-top: 4px !important;
+          }
+
+          .spotlight-card {
+            padding: 20px !important;
+          }
+
+          /* On mobile, use 3D graphics as rich vivid background images */
+          .card-fashion {
+            background: linear-gradient(135deg, rgba(250, 245, 238, 0.75) 0%, rgba(247, 239, 228, 0.45) 100%), url('/assets/campaign_arch_3d.jpg') center center / cover no-repeat !important;
+          }
+
+          .card-lifestyle {
+            background: linear-gradient(135deg, rgba(255, 245, 237, 0.75) 0%, rgba(253, 240, 230, 0.45) 100%), url('/assets/campaign_lifestyle_mug.jpg') center right / cover no-repeat !important;
+          }
+
+          .card-technology {
+            background: linear-gradient(135deg, rgba(243, 240, 255, 0.75) 0%, rgba(235, 229, 255, 0.45) 100%), url('/assets/campaign_purple_glass.jpg') center right / cover no-repeat !important;
+          }
+
+          .arch-graphic-img, .mug-graphic-img, .glass-graphic-img {
+            display: none !important;
+          }
+
+          .fashion-card-bottom {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            min-height: auto !important;
+            margin-top: 20px !important;
+            gap: 12px !important;
+          }
+
+          .fashion-bottom-left, .content-text-left {
+            max-width: 100% !important;
+            width: 100% !important;
+            position: relative !important;
+            z-index: 5 !important;
+          }
+
+          .lifestyle-top-row, .tech-top-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+          .lifestyle-bar-wrapper {
+            width: 100% !important;
+          }
+
+          .lifestyle-main-content, .tech-main-content {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            min-height: auto !important;
+            margin-top: 16px !important;
+            gap: 12px !important;
+          }
+
+          .stats-cards-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .stat-card {
+            height: auto !important;
+            padding: 30px 16px 40px 16px !important;
+          }
+          .stat-sub {
+            color: #4B5563 !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            opacity: 1 !important;
+          }
+
+          /* Testimonials & FAQ on Mobile */
+          .testimonial-card-v2 {
+            width: 290px !important;
+            max-width: 82vw !important;
+            padding: 18px !important;
+            flex-direction: column !important;
+          }
+
+          .testimonial-marquee-container {
+            width: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+          }
+
           #landing-page-root .testimonials-section,
           #landing-page-root .final {
             border-top-left-radius: 24px !important;
             border-top-right-radius: 24px !important;
-            padding: 80px 0 !important;
+            padding: 60px 0 !important;
           }
-          #landing-page-root .campaign {
-            border-radius: 12px !important;
-          }
-          #landing-page-root .stat {
-            border-radius: 12px !important;
-          }
-          #landing-page-root .hero h1.hero-title-serif {
-            font-size: clamp(48px, 13vw, 76px) !important;
-            line-height: 1.05 !important;
-            letter-spacing: -0.06em !important;
-          }
-          #landing-page-root .actions {
-            flex-direction: column !important;
-            align-items: stretch !important;
-            width: 100% !important;
-            gap: 12px !important;
-          }
-          #landing-page-root .actions .cta,
-          #landing-page-root .actions .ghost {
-            width: 100% !important;
-            text-align: center !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            white-space: nowrap !important;
-            padding: 14px 24px !important;
-            font-size: 15px !important;
-          }
-          .hero-art { height: 440px; }
-          .art-image { width: 80%; height: 370px; right: 20px; }
-          .art-paper { width: 88%; height: 395px; right: 0; }
-          .art-image:before { width: 170px; height: 250px; left: 60px; top: 65px; }
-          .orbit { width: 115px; height: 115px; font-size: 14px; bottom: 25px; }
-          .sticker { width: 82px; height: 82px; font-size: 9px; bottom: 20px; }
-          .statement { padding: 80px 0; }
-          #landing-page-root .statement h2 { font-size: clamp(28px, 8.5vw, 42px) !important; line-height: 0.95 !important; }
-          .section-top { display: block; }
-          .section-top h2 { font-size: clamp(28px, 8vw, 40px) !important; margin-bottom: 20px; }
-          .step { grid-template-columns: 45px 1fr; gap: 15px; }
-          .step p { grid-column: 2; }
-          #landing-page-root .step h3 { font-size: 22px !important; }
-          #landing-page-root .panel { min-height: 380px !important; padding: 45px 24px !important; }
-          #landing-page-root .panel h2 { font-size: clamp(32px, 8vw, 54px) !important; margin: 20px 0 !important; }
-          #landing-page-root .campaigns { padding: 80px 0 !important; }
-          #landing-page-root .campaign h3 { font-size: clamp(24px, 6vw, 32px) !important; }
-          #landing-page-root .campaign .campaign-meta { flex-wrap: wrap !important; gap: 8px !important; }
-          #landing-page-root .campaign.one:before { width: 240px !important; height: 320px !important; right: 20px !important; top: 50px !important; }
-          #landing-page-root .campaign.two:before { width: 160px !important; height: 210px !important; right: 20px !important; top: 30px !important; }
-          #landing-page-root .campaign.three:before { width: 200px !important; height: 130px !important; right: 10px !important; bottom: 20px !important; }
-          #landing-page-root .stat strong { font-size: 40px !important; }
-          #landing-page-root .stat { padding: 35px 15px !important; }
-          #landing-page-root .testimonials-section { padding: 80px 0 !important; }
-          #landing-page-root .testimonial-quote { font-size: clamp(16px, 4.5vw, 19px) !important; }
-          .faq { padding: 70px 0 100px; }
-          .final { padding: 80px 0; }
-          #landing-page-root .final h2 { font-size: clamp(34px, 9.5vw, 56px) !important; line-height: 0.9 !important; margin-bottom: 30px !important; }
+
           #landing-page-root .footgrid {
             grid-template-columns: 1fr !important;
             text-align: center !important;
@@ -2389,23 +4102,7 @@ export default function Landing() {
             text-align: center !important;
             gap: 12px !important;
           }
-          .bottom span { display: block; margin-top: 4px; }
-        }
-
-        /* ── RESPONSIVENESS OVERRIDES (MAX-WIDTH: 480PX) ── */
-        @media(max-width: 480px){
-          #landing-page-root .stats {
-            grid-template-columns: 1fr !important;
-          }
-          #landing-page-root .stat {
-            border-right: 0 !important;
-            border-bottom: 1px solid var(--line) !important;
-          }
-          #landing-page-root .stat:last-child {
-            border-bottom: 0 !important;
-          }
-        }
-      `}</style>
+        }`}</style>
     </div>
   );
 }

@@ -26,6 +26,41 @@ const CAT_CLR = {
   general: 'var(--t3)'
 };
 
+export function renderContentWithLinks(text, isPreview = false) {
+  if (!text) return null;
+  const cleaned = isPreview ? text.replace(/[#*_`]/g, '') : text;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = cleaned.split(urlRegex);
+
+  return parts.map((part, i) => {
+    if (part.match(/^https?:\/\//)) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            color: 'var(--acc, #E65F2B)',
+            textDecoration: 'underline',
+            wordBreak: 'break-all',
+            overflowWrap: 'anywhere',
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'opacity 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.8'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 export default function KnowledgeBase() {
   const { hasRole } = useAuth();
   const canEdit = hasRole('admin') || hasRole('superadmin') || hasRole('team_member');
@@ -205,12 +240,13 @@ export default function KnowledgeBase() {
                     {a.title}
                   </h3>
 
-                  <p style={{
+                  <div style={{
                     fontSize: 13, color: 'var(--t2)', marginBottom: 16, lineHeight: 1.55, fontWeight: 500,
-                    overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical'
+                    overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+                    wordBreak: 'break-word'
                   }}>
-                    {a.content?.replace(/[#*_`]/g, '')}
-                  </p>
+                    {renderContentWithLinks(a.content, true)}
+                  </div>
                 </div>
 
                 <div style={{
@@ -250,9 +286,9 @@ export default function KnowledgeBase() {
 
             <div style={{
               fontSize: 14, color: 'var(--t1)', lineHeight: 1.8, maxHeight: 440, overflowY: 'auto',
-              whiteSpace: 'pre-wrap', fontFamily: 'Inter, sans-serif', paddingRight: 4
+              whiteSpace: 'pre-wrap', fontFamily: 'Inter, sans-serif', paddingRight: 4, wordBreak: 'break-word'
             }}>
-              {reading.content}
+              {renderContentWithLinks(reading.content)}
             </div>
 
             {reading.tags?.length > 0 && (
