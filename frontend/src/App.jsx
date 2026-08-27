@@ -12,6 +12,7 @@ const Landing      = lazy(() => import('./pages/Landing'));
 const Login        = lazy(() => import('./pages/auth/Login'));
 const Register     = lazy(() => import('./pages/auth/Register'));
 const LoginSuccess = lazy(() => import('./pages/LoginSuccess'));
+const NotFound     = lazy(() => import('./pages/NotFound'));
 
 /* ── Creator ── */
 const CreatorDashboard  = lazy(() => import('./pages/creator/Dashboard'));
@@ -228,7 +229,7 @@ export default function App() {
         <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
     </Suspense>
   </>

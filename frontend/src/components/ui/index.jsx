@@ -136,24 +136,25 @@ export function WorkflowPipeline({ status }) {
       justifyContent: 'space-between',
       width: '100%',
       overflowX: 'auto',
-      scrollbarWidth: 'none',
-      padding: '8px 0',
+      WebkitOverflowScrolling: 'touch',
+      padding: '4px 2px',
+      gap: 4
     }}>
       {STEPS.map((step, i) => {
         const done = i < currentIdx;
         const active = i === currentIdx;
         return (
-          <div key={step.key} style={{ display: 'flex', alignItems: 'center', flex: i < STEPS.length - 1 ? 1 : '0 0 auto', minWidth: 0 }}>
+          <div key={step.key} style={{ display: 'flex', alignItems: 'center', flex: i < STEPS.length - 1 ? '1 1 54px' : '0 0 auto', minWidth: 54 }}>
             {/* Step Circle & Text Label */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, minWidth: 48 }}>
               <div style={{
-                width: 26,
-                height: 26,
+                width: 24,
+                height: 24,
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 800,
                 transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                 background: done
@@ -163,19 +164,20 @@ export function WorkflowPipeline({ status }) {
                     : 'var(--s2, #26221F)',
                 color: done || active ? '#ffffff' : 'var(--t3)',
                 boxShadow: active
-                  ? '0 0 16px rgba(230, 95, 43, 0.5), 0 0 4px rgba(255,255,255,0.8)'
+                  ? '0 0 12px rgba(230, 95, 43, 0.4)'
                   : done
-                    ? '0 0 10px rgba(16, 185, 129, 0.3)'
+                    ? '0 0 8px rgba(16, 185, 129, 0.25)'
                     : 'none',
                 border: active ? '2px solid #ffffff' : '1px solid var(--border)',
-                transform: active ? 'scale(1.15)' : 'scale(1)',
+                transform: active ? 'scale(1.1)' : 'scale(1)',
               }}>
                 {done ? '✓' : i + 1}
               </div>
               <span style={{
-                fontSize: 10,
+                fontSize: 9.5,
                 color: active ? 'var(--acc, #E65F2B)' : done ? 'var(--acc2, #10b981)' : 'var(--t3)',
                 fontWeight: active ? 800 : 500,
+                textAlign: 'center',
                 whiteSpace: 'nowrap',
                 letterSpacing: -0.2,
               }}>
@@ -187,9 +189,9 @@ export function WorkflowPipeline({ status }) {
             {i < STEPS.length - 1 && (
               <div style={{
                 flex: 1,
-                height: 3,
-                margin: '0 6px',
-                marginBottom: 16,
+                height: 2.5,
+                margin: '0 4px',
+                marginBottom: 14,
                 borderRadius: 99,
                 background: done
                   ? 'linear-gradient(90deg, #10b981, #059669)'
@@ -197,7 +199,7 @@ export function WorkflowPipeline({ status }) {
                     ? 'linear-gradient(90deg, #E65F2B, var(--border))'
                     : 'var(--border)',
                 transition: 'background 0.3s ease',
-                minWidth: 10,
+                minWidth: 12,
               }} />
             )}
           </div>

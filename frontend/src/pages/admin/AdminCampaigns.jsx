@@ -97,11 +97,11 @@ export default function AdminCampaigns() {
 
   return (
     <div className="page-enter">
-      <div className="page-header">
+      <div className="page-header" style={{ paddingLeft: 0, paddingRight: 0 }}>
         <div>
-          <h1 style={{ fontFamily:'var(--fd)', fontSize:'clamp(18px,4vw,24px)', fontWeight:800, display:'flex', alignItems:'center', gap:10 }}>
-            <Megaphone size={22} style={{ color:'var(--p)' }}/>
-            {isAdmin ? 'Campaign Management' : 'My Assigned Campaigns'}
+          <h1 style={{ fontFamily:'var(--fd)', fontSize:'clamp(18px,4vw,24px)', fontWeight:800, display:'flex', alignItems:'center', gap:10, wordBreak: 'break-word', flexWrap: 'wrap' }}>
+            <Megaphone size={22} style={{ color:'var(--p)', flexShrink: 0 }}/>
+            <span>{isAdmin ? 'Campaign Management' : 'My Assigned Campaigns'}</span>
           </h1>
           <p style={{ color:'var(--t2)', fontSize:13, marginTop:4 }}>
             {total} campaign{total !== 1 ? 's' : ''} · {isAdmin ? 'Full workspace opens as dedicated page' : 'Your assigned campaign overview'}
@@ -117,22 +117,22 @@ export default function AdminCampaigns() {
       )}
 
       {/* ── Filters ──────────────────────────────────── */}
-      <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap', alignItems:'center' }}>
-        <div style={{ position:'relative', flex:'1 1 200px', maxWidth:320 }}>
+      <div style={{ display:'flex', gap:10, marginBottom:16, flexWrap:'wrap', alignItems:'center' }}>
+        <div style={{ position:'relative', flex:'1 1 200px', maxWidth:320, minWidth: 180 }}>
           <Search size={13} style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', color:'var(--t3)' }}/>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search campaigns…"
             className="form-input"
-            style={{ paddingLeft:30, height:38, fontSize:13 }}
+            style={{ paddingLeft:30, height:38, fontSize:12.5 }}
           />
         </div>
         <select
           value={status}
           onChange={e => setStatus(e.target.value)}
           className="form-input"
-          style={{ width:'auto', height:38, fontSize:12, padding:'6px 10px' }}
+          style={{ flex: '1 1 140px', minWidth: 130, maxWidth: 200, height:38, fontSize:12, padding:'6px 10px' }}
         >
           {ALL_STATUSES.map(s => (
             <option key={s} value={s} style={{ background:'var(--s2)' }}>
@@ -151,41 +151,52 @@ export default function AdminCampaigns() {
               {campaigns.map(c => {
                 const health = calcHealth(c);
                 return (
-                  <div key={c._id} className="card card-hover" style={{ padding: 18, borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div key={c._id} className="card card-hover" style={{ padding: 16, borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
                     {/* Header Avatar, Title, Brand & Badges */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 200px', minWidth: 0 }}>
-                        <Avatar src={c.brand?.avatar} name={c.brand?.displayName} size={44} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--t1)', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {c.title}
-                          </h3>
-                          <div style={{ fontSize: 12, color: 'var(--t2)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                            <span style={{ fontWeight: 700 }}>{c.brand?.companyName || c.brand?.displayName}</span>
-                            <span>·</span>
-                            <span style={{ color: 'var(--acc)', fontWeight: 800 }}>₹{(c.budget || 0).toLocaleString('en-IN')}</span>
-                            <span>·</span>
-                            <span style={{ color: (c.daysLeft||0)<3 ? 'var(--rose)' : (c.daysLeft||0)<7 ? 'var(--gold)' : 'var(--t3)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <Clock size={12} />{c.daysLeft || 0}d left
-                            </span>
-                            <span>·</span>
-                            <span style={{ color: 'var(--t3)' }}>{c.niche}</span>
-                            <span>·</span>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
-                              <Users size={12} />{c.assignedCreators?.length || 0}/{c.totalSlots || 1}
-                            </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {/* Top Row: Avatar + Title + Badges */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                          <Avatar src={c.brand?.avatar} name={c.brand?.displayName} size={40} />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--t1)', margin: 0, wordBreak: 'break-word' }}>
+                              {c.title}
+                            </h3>
+                            <div style={{ fontSize: 12, color: 'var(--t2)', marginTop: 2, fontWeight: 600, wordBreak: 'break-word' }}>
+                              {c.brand?.companyName || c.brand?.displayName}
+                            </div>
                           </div>
+                        </div>
+
+                        {/* Badges Column */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                          <StatusBadge status={c.workflowStatus} />
+                          <HealthDot score={health} />
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', flexShrink: 0 }}>
-                        <StatusBadge status={c.workflowStatus} />
-                        <HealthDot score={health} />
+                      {/* Sub-info Meta Pills Row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 11.5, color: 'var(--t2)', padding: '6px 10px', background: 'var(--s2)', borderRadius: 8, border: '1px solid var(--border)' }}>
+                        <span style={{ color: 'var(--acc)', fontWeight: 800 }}>₹{(c.budget || 0).toLocaleString('en-IN')}</span>
+                        <span style={{ color: 'var(--t3)' }}>•</span>
+                        <span style={{ color: (c.daysLeft||0)<3 ? 'var(--rose)' : (c.daysLeft||0)<7 ? 'var(--gold)' : 'var(--t3)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          <Clock size={11} />{c.daysLeft || 0}d left
+                        </span>
+                        {c.niche && (
+                          <>
+                            <span style={{ color: 'var(--t3)' }}>•</span>
+                            <span style={{ color: 'var(--p2)', fontWeight: 600 }}>{c.niche}</span>
+                          </>
+                        )}
+                        <span style={{ color: 'var(--t3)' }}>•</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, color: 'var(--t1)' }}>
+                          <Users size={11} />{c.assignedCreators?.length || 0}/{c.totalSlots || 1} creators
+                        </span>
                       </div>
                     </div>
 
                     {/* Workflow Stepper Wrapper */}
-                    <div style={{ background: 'var(--s2)', padding: '12px 14px', borderRadius: 12, border: '1px solid var(--border)' }}>
+                    <div style={{ background: 'var(--s2)', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--border)', overflowX: 'auto' }}>
                       <WorkflowPipeline status={c.workflowStatus} />
                     </div>
 
@@ -210,11 +221,11 @@ export default function AdminCampaigns() {
                     )}
 
                     {/* Action Buttons Row */}
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                       <button
                         onClick={() => openWorkspace(c._id)}
                         className="btn btn-primary btn-sm"
-                        style={{ fontSize: 12, gap: 6, padding: '8px 16px', borderRadius: 8, fontWeight: 700 }}
+                        style={{ fontSize: 12, gap: 6, padding: '8px 16px', borderRadius: 8, fontWeight: 700, flex: '1 1 140px', justifyContent: 'center' }}
                       >
                         <FileText size={13} /> Open Workspace
                       </button>
@@ -223,7 +234,7 @@ export default function AdminCampaigns() {
                         <button
                           onClick={() => updateStatus(c._id, 'admin_review')}
                           className="btn btn-secondary btn-sm"
-                          style={{ fontSize: 12, padding: '8px 16px', borderRadius: 8, fontWeight: 700 }}
+                          style={{ fontSize: 12, padding: '8px 16px', borderRadius: 8, fontWeight: 700, flex: '1 1 140px', justifyContent: 'center' }}
                         >
                           Mark Under Review
                         </button>
@@ -233,7 +244,7 @@ export default function AdminCampaigns() {
                         <button
                           onClick={() => openRoom(c)}
                           className="btn btn-secondary btn-sm"
-                          style={{ fontSize: 12, gap: 6, padding: '8px 16px', borderRadius: 8, fontWeight: 700 }}
+                          style={{ fontSize: 12, gap: 6, padding: '8px 16px', borderRadius: 8, fontWeight: 700, flex: '1 1 140px', justifyContent: 'center' }}
                         >
                           <Radio size={13} /> Campaign Room
                         </button>
