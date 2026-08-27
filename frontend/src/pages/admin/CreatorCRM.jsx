@@ -185,10 +185,6 @@ export default function CreatorCRM() {
           <option value="" style={{ background: 'var(--s2)' }}>All Niches</option>
           {NICHES.map(n => <option key={n} value={n} style={{ background: 'var(--s2)' }}>{n}</option>)}
         </select>
-        <select value={filter} onChange={e => setFilter(e.target.value)} className="form-input" style={{ flex: '1 1 130px', minWidth: 120, maxWidth: 160, fontSize: 12, padding: '6px 10px', height: 36 }}>
-          <option value="" style={{ background: 'var(--s2)' }}>All Statuses</option>
-          {CRM_STATUSES.map(s => <option key={s.key} value={s.key} style={{ background: 'var(--s2)' }}>{s.key.replace('_', ' ')}</option>)}
-        </select>
         <select value={barterFilter} onChange={e => setBarterFilter(e.target.value)} className="form-input" style={{ flex: '1 1 130px', minWidth: 120, maxWidth: 160, fontSize: 12, padding: '6px 10px', height: 36 }}>
           <option value="" style={{ background: 'var(--s2)' }}>All Barter Status</option>
           <option value="true" style={{ background: 'var(--s2)' }}>🎁 Barter Ready (Yes)</option>
@@ -198,92 +194,197 @@ export default function CreatorCRM() {
 
       {loading ? <PageLoader />
         : creators.length === 0 ? <EmptyState icon="👤" title="No creators found" desc="Adjust your filters or search query" />
-          : <div className="card" style={{ padding: 0, overflow: 'hidden', maxWidth: '100%' }}>
-            <div className="table-wrap" style={{ overflowX: 'auto', width: '100%' }}>
-              <table style={{ width: '100%', minWidth: 680 }}>
-                <thead>
-                  <tr>
-                    <th>Creator</th>
-                    <th>Niche</th>
-                    <th>Location</th>
-                    <th>Followers</th>
-                    <th>CRM Status</th>
-                    <th>Assigned To</th>
-                    <th style={{ textAlign: 'right' }}>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {creators.map(c => {
-                    const st = statusFor(c.crmStatus || 'registered');
-                    const igRaw = c.socialUrls?.instagram || c.platforms?.instagram?.profileUrl || c.platforms?.instagram?.username || c.instagramHandle || c.instagram;
-                    const igData = getInstagramLink(igRaw);
-                    return (
-                      <tr key={c._id} style={{ cursor: 'pointer' }} onClick={() => openCreator(c)}>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <Avatar src={c.avatar} name={c.displayName} size={34} />
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>
-                                  {c.displayName}
-                                </span>
-                                {igData && (
-                                  <a
-                                    href={igData.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={e => e.stopPropagation()}
-                                    title={`Open ${igData.handle} on Instagram`}
-                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 3, textDecoration: 'none', color: '#e1306c', fontSize: 11, fontWeight: 700, flexShrink: 0 }}
-                                  >
-                                    <InstagramIcon size={13} />
-                                    <span style={{ fontSize: 10.5 }}>{igData.handle}</span>
-                                  </a>
-                                )}
-                              </div>
-                              <div style={{ fontSize: 10.5, color: 'var(--t3)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 170 }}>
-                                {c.email ? (
-                                  <a
-                                    href={`mailto:${c.email}`}
-                                    onClick={e => e.stopPropagation()}
-                                    style={{ color: 'var(--t3)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}
-                                    title={`Email ${c.email}`}
-                                  >
-                                    <GmailIcon size={12} />
-                                    <span>{c.email}</span>
-                                  </a>
-                                ) : null}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--t2)' }}>{c.niche || 'General'}</td>
-                        <td style={{ fontSize: 11, color: 'var(--t2)' }}>{c.city || c.location || '—'}</td>
-                        <td>
-                          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t1)' }}>{(c.platforms?.instagram?.followers || c.followers || 0).toLocaleString()}</span>
-                        </td>
-                        <td>
-                          <select value={c.crmStatus || 'registered'} onChange={e => { e.stopPropagation(); handleStatusChange(c._id, e.target.value); }}
-                            onClick={e => e.stopPropagation()}
-                            style={{ background: 'transparent', border: `1px solid ${st.color}40`, borderRadius: 99, padding: '3px 8px', fontSize: 10, color: st.color, cursor: 'pointer', outline: 'none' }}>
-                            {CRM_STATUSES.map(s => <option key={s.key} value={s.key} style={{ background: 'var(--s2)', color: 'var(--t1)' }}>{s.key.replace('_', ' ')}</option>)}
-                          </select>
-                        </td>
-                        <td onClick={e => e.stopPropagation()}>
-                          <select defaultValue={c.assignedTeamMember?._id || c.assignedTeamMember || ''} onChange={e => handleAssign(c._id, e.target.value)}
-                            style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '3px 8px', fontSize: 10, color: 'var(--t2)', cursor: 'pointer', outline: 'none', maxWidth: 110 }}>
-                            <option value="" style={{ background: 'var(--s2)' }}>Unassigned</option>
-                            {members.map(m => <option key={m._id} value={m._id} style={{ background: 'var(--s2)' }}>{m.displayName}</option>)}
-                          </select>
-                        </td>
-                        <td style={{ textAlign: 'right' }}><button onClick={(e) => { e.stopPropagation(); openCreator(c); }} className="btn btn-secondary btn-sm" style={{ fontSize: 11, fontWeight: 700 }}>View Profile</button></td>
+          : (
+            <>
+              {/* Desktop Table View */}
+              <div className="card hide-mobile" style={{ padding: 0, overflow: 'hidden', maxWidth: '100%' }}>
+                <div className="table-wrap" style={{ overflowX: 'auto', width: '100%' }}>
+                  <table style={{ width: '100%', minWidth: 680 }}>
+                    <thead>
+                      <tr>
+                        <th>Creator</th>
+                        <th>Niche</th>
+                        <th>Location</th>
+                        <th>Followers</th>
+                        <th>CRM Status</th>
+                        <th>Assigned To</th>
+                        <th style={{ textAlign: 'right' }}>Action</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>}
+                    </thead>
+                    <tbody>
+                      {creators.map(c => {
+                        const st = statusFor(c.crmStatus || 'registered');
+                        const igRaw = c.socialUrls?.instagram || c.platforms?.instagram?.profileUrl || c.platforms?.instagram?.username || c.instagramHandle || c.instagram;
+                        const igData = getInstagramLink(igRaw);
+                        return (
+                          <tr key={c._id} style={{ cursor: 'pointer' }} onClick={() => openCreator(c)}>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Avatar src={c.avatar} name={c.displayName} size={34} />
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                    <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>
+                                      {c.displayName}
+                                    </span>
+                                    {igData && (
+                                      <a
+                                        href={igData.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={e => e.stopPropagation()}
+                                        title={`Open ${igData.handle} on Instagram`}
+                                        style={{
+                                          display: 'inline-flex', alignItems: 'center', gap: 3, textDecoration: 'none',
+                                          color: '#e1306c', fontSize: 11, fontWeight: 700, flexShrink: 0,
+                                          background: 'rgba(225,48,108,0.12)', padding: '1.5px 7px', borderRadius: 6,
+                                          cursor: 'pointer', border: '1px solid rgba(225,48,108,0.25)'
+                                        }}
+                                      >
+                                        <InstagramIcon size={12} />
+                                        <span style={{ fontSize: 10.5 }}>{igData.handle.startsWith('@') ? igData.handle : `@${igData.handle}`}</span>
+                                      </a>
+                                    )}
+                                  </div>
+                                  <div style={{ fontSize: 10.5, color: 'var(--t3)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 170 }}>
+                                    {c.email ? (
+                                      <a
+                                        href={`mailto:${c.email}`}
+                                        onClick={e => e.stopPropagation()}
+                                        style={{ color: 'var(--t3)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}
+                                        title={`Email ${c.email}`}
+                                      >
+                                        <GmailIcon size={12} />
+                                        <span>{c.email}</span>
+                                      </a>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--t2)' }}>{c.niche || 'General'}</td>
+                            <td style={{ fontSize: 11, color: 'var(--t2)' }}>{c.city || c.location || '—'}</td>
+                            <td>
+                              <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t1)' }}>{(c.platforms?.instagram?.followers || c.followers || 0).toLocaleString()}</span>
+                            </td>
+                            <td>
+                              <select value={c.crmStatus || 'registered'} onChange={e => { e.stopPropagation(); handleStatusChange(c._id, e.target.value); }}
+                                onClick={e => e.stopPropagation()}
+                                style={{ background: 'transparent', border: `1px solid ${st.color}40`, borderRadius: 99, padding: '3px 8px', fontSize: 10, color: st.color, cursor: 'pointer', outline: 'none' }}>
+                                {CRM_STATUSES.map(s => <option key={s.key} value={s.key} style={{ background: 'var(--s2)', color: 'var(--t1)' }}>{s.key.replace('_', ' ')}</option>)}
+                              </select>
+                            </td>
+                            <td onClick={e => e.stopPropagation()}>
+                              <select defaultValue={c.assignedTeamMember?._id || c.assignedTeamMember || ''} onChange={e => handleAssign(c._id, e.target.value)}
+                                style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '3px 8px', fontSize: 10, color: 'var(--t2)', cursor: 'pointer', outline: 'none', maxWidth: 110 }}>
+                                <option value="" style={{ background: 'var(--s2)' }}>Unassigned</option>
+                                {members.map(m => <option key={m._id} value={m._id} style={{ background: 'var(--s2)' }}>{m.displayName}</option>)}
+                              </select>
+                            </td>
+                            <td style={{ textAlign: 'right' }}><button onClick={(e) => { e.stopPropagation(); openCreator(c); }} className="btn btn-secondary btn-sm" style={{ fontSize: 11, fontWeight: 700 }}>View Profile</button></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mobile Single-View Responsive Cards (NO HORIZONTAL SCROLL NEEDED!) */}
+              <div className="show-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12 }}>
+                {creators.map(c => {
+                  const st = statusFor(c.crmStatus || 'registered');
+                  const igRaw = c.socialUrls?.instagram || c.platforms?.instagram?.profileUrl || c.platforms?.instagram?.username || c.instagramHandle || c.instagram;
+                  const igData = getInstagramLink(igRaw);
+                  const followers = c.platforms?.instagram?.followers || c.followers || 0;
+
+                  return (
+                    <div
+                      key={c._id}
+                      className="card"
+                      onClick={() => openCreator(c)}
+                      style={{ padding: '16px', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 12, background: 'var(--s1)', border: '1px solid var(--border)', cursor: 'pointer' }}
+                    >
+                      {/* Top Header: Avatar + Display Name + Clickable Insta Handle */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                          <Avatar src={c.avatar} name={c.displayName} size={40} />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--t1)', wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <span>{c.displayName}</span>
+                              {igData && (
+                                <a
+                                  href={igData.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={e => e.stopPropagation()}
+                                  title={`Open ${igData.handle} on Instagram`}
+                                  style={{
+                                    fontSize: 11, color: '#e1306c', fontWeight: 700, display: 'inline-flex',
+                                    alignItems: 'center', gap: 3, background: 'rgba(225,48,108,0.12)', padding: '1.5px 7px',
+                                    borderRadius: 6, textDecoration: 'none', cursor: 'pointer', border: '1px solid rgba(225,48,108,0.25)'
+                                  }}
+                                >
+                                  <InstagramIcon size={12} />
+                                  <span>{igData.handle.startsWith('@') ? igData.handle : `@${igData.handle}`}</span>
+                                </a>
+                              )}
+                            </div>
+                            {c.email && (
+                              <a
+                                href={`mailto:${c.email}`}
+                                onClick={e => e.stopPropagation()}
+                                style={{
+                                  fontSize: 11.5,
+                                  color: 'var(--t2)',
+                                  textDecoration: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  marginTop: 3,
+                                  wordBreak: 'break-all'
+                                }}
+                                title={`Send email to ${c.email}`}
+                              >
+                                <GmailIcon size={12} />
+                                <span>{c.email}</span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        {c.isBarterReady && (
+                          <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: 'rgba(52,211,153,0.15)', color: 'var(--acc2)', fontWeight: 800, flexShrink: 0 }}>
+                            🎁 Barter
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Details Row: Niche + Location + Followers */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '10px 0', borderTop: '1px dashed var(--border)', borderBottom: '1px dashed var(--border)', fontSize: 12 }}>
+                        <div>Niche: <strong style={{ color: 'var(--p2)' }}>{c.niche || 'General'}</strong></div>
+                        <div>Location: <strong style={{ color: 'var(--t1)' }}>{c.city || c.location || 'India'}</strong></div>
+                        <div>Followers: <strong style={{ color: 'var(--gold)' }}>{followers > 0 ? followers.toLocaleString('en-IN') : '—'}</strong></div>
+                      </div>
+
+                      {/* Footer Row: Status + Actions */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }} onClick={e => e.stopPropagation()}>
+                        <select
+                          value={c.crmStatus || 'registered'}
+                          onChange={e => { e.stopPropagation(); handleStatusChange(c._id, e.target.value); }}
+                          style={{ background: 'transparent', border: `1px solid ${st.color}40`, borderRadius: 99, padding: '4px 10px', fontSize: 11, color: st.color, cursor: 'pointer', outline: 'none', fontWeight: 700 }}
+                        >
+                          {CRM_STATUSES.map(s => <option key={s.key} value={s.key} style={{ background: 'var(--s2)', color: 'var(--t1)' }}>{s.key.replace('_', ' ')}</option>)}
+                        </select>
+
+                        <button onClick={(e) => { e.stopPropagation(); openCreator(c); }} className="btn btn-secondary btn-sm" style={{ fontSize: 11.5, fontWeight: 700, padding: '6px 12px' }}>
+                          Profile Details →
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
       {/* Full Creator Profile & Notes Modal */}
       <Modal open={!!selected} onClose={() => setSelected(null)} title="" maxWidth={680}>

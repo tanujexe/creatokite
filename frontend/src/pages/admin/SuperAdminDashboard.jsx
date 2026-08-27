@@ -268,12 +268,29 @@ export default function SuperAdminDashboard({ initialTab = 'overview' }) {
         </div>
       )}
 
-      {/* Tab Switcher */}
-      <div style={{ display:'flex', gap:6, borderBottom:'1px solid var(--border)', paddingBottom:10 }} className="rs-chip-row">
+      {/* Mobile Select for Tabs */}
+      <div className="show-mobile" style={{ display: 'none', marginBottom: 12 }}>
+        <select
+          value={activeTab}
+          onChange={e => {
+            setActiveTab(e.target.value);
+            if (e.target.value === 'activities') fetchActivities();
+          }}
+          className="form-input"
+          style={{ width: '100%', height: 42, fontSize: 13, fontWeight: 700, borderRadius: 10, background: 'var(--s2)', color: 'var(--t1)' }}
+        >
+          <option value="overview">🛡️ {isSuper ? 'System Overview & Controls' : 'Submissions Verification'}</option>
+          <option value="activities">⚡ Activities Manager</option>
+        </select>
+      </div>
+
+      {/* Desktop Tab Switcher */}
+      <div className="hide-mobile" style={{ display: 'flex', gap: 6, borderBottom: '1px solid var(--border)', paddingBottom: 10, overflowX: 'auto', flexWrap: 'wrap' }}>
         <button
           onClick={() => setActiveTab('overview')}
           className={`chip ${activeTab === 'overview' ? 'active' : ''}`}
-          style={{ fontSize:12, padding:'8px 16px', borderRadius:8, display:'flex', alignItems:'center', gap:6 }}>
+          style={{ fontSize: 12, padding: '8px 16px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
+        >
           <Shield size={14}/> {isSuper ? 'System Overview & Controls' : 'Submissions Verification'}
         </button>
         <button
@@ -282,7 +299,8 @@ export default function SuperAdminDashboard({ initialTab = 'overview' }) {
             fetchActivities();
           }}
           className={`chip ${activeTab === 'activities' ? 'active' : ''}`}
-          style={{ fontSize:12, padding:'8px 16px', borderRadius:8, display:'flex', alignItems:'center', gap:6 }}>
+          style={{ fontSize: 12, padding: '8px 16px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
+        >
           <Activity size={14}/> Activities Manager
         </button>
       </div>
