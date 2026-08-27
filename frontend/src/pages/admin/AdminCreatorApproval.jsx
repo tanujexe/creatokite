@@ -181,47 +181,49 @@ export default function AdminCreatorApproval() {
         </button>
       </div>
 
-      {/* Stats row */}
+      {/* Stats row (2x2 Grid on Mobile) */}
       {stats && (
-        <div className="grid-4">
-          <StatCard label="Pending Approval" value={stats.pending || 0} icon={Shield} color="var(--gold)" sub="Need review" />
-          <StatCard label="Approved" value={stats.approved || 0} icon={CheckCircle} color="var(--acc2)" />
-          <StatCard label="High Risk" value={stats.highRisk || 0} icon={AlertTriangle} color="var(--rose)" sub="Flag for rejection" />
-          <StatCard label="Avg CAS Score" value={`${stats.avgCas || 82}/100`} icon={Star} color="var(--p2)" sub="Platform average" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          <StatCard label="Pending Approval" value={stats.pending || 0} icon={Shield} color="var(--gold)" sub="Need review" minWidth={0} />
+          <StatCard label="Approved" value={stats.approved || 0} icon={CheckCircle} color="var(--acc2)" minWidth={0} />
+          <StatCard label="High Risk" value={stats.highRisk || 0} icon={AlertTriangle} color="var(--rose)" sub="Flag for rejection" minWidth={0} />
+          <StatCard label="Avg CAS Score" value={`${stats.avgCas || 82}/100`} icon={Star} color="var(--p2)" sub="Platform average" minWidth={0} />
         </div>
       )}
 
       {/* Tabs + filters */}
-      <div className="flex-between" style={{ flexWrap: 'wrap', gap: 10 }}>
-        <div style={{ display: 'flex', gap: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {['pending', 'all'].map(t => (
             <button key={t} onClick={() => { setTab(t); setPage(1); }} className={`btn btn-${tab === t ? 'primary' : 'secondary'} btn-sm`}
-              style={{ textTransform: 'capitalize' }}>{t === 'pending' ? `⏳ Pending${stats?.pending ? ` (${stats.pending})` : ''}` : '📋 All Creators'}</button>
+              style={{ textTransform: 'capitalize', fontSize: 12, padding: '7px 14px', borderRadius: 10 }}>{t === 'pending' ? `⏳ Pending${stats?.pending ? ` (${stats.pending})` : ''}` : '📋 All Creators'}</button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <select className="form-input" style={{ width: 140 }} value={riskFilter} onChange={e => { setRiskFilter(e.target.value); setPage(1); }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
+          <select className="form-input" style={{ width: 'auto', minWidth: 140, padding: '7px 12px', fontSize: 12, borderRadius: 10, cursor: 'pointer' }} value={riskFilter} onChange={e => { setRiskFilter(e.target.value); setPage(1); }}>
             <option value="">All Risk Levels</option>
             <option value="LOW">Low Risk</option>
             <option value="MEDIUM">Medium Risk</option>
             <option value="HIGH">High Risk</option>
           </select>
-          <Btn variant="secondary" size="sm" onClick={load}><RefreshCw size={12} /></Btn>
+          <Btn variant="secondary" size="sm" onClick={load} style={{ padding: '7px 10px', borderRadius: 10 }}><RefreshCw size={13} /></Btn>
         </div>
       </div>
 
-      {/* Table */}
+      {/* Main Content: Table (Desktop) + Cards (Mobile) */}
       {loading ? <PageLoader /> : creators.length === 0 ? (
         <EmptyState icon={tab === 'pending' ? '🎉' : '👥'}
           title={tab === 'pending' ? 'All caught up!' : 'No creators found'}
           desc={tab === 'pending' ? 'No creators waiting for approval.' : 'Try changing filters.'} />
       ) : (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="table-wrap">
+        <>
+          {/* Desktop Table View */}
+          <div className="card hide-mobile" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Creator</th>
+                  <th>Creator & Insta ID</th>
                   <th>CAS Score</th>
                   <th>Risk</th>
                   <th>Badge</th>
@@ -249,51 +251,49 @@ export default function AdminCreatorApproval() {
                     <tr key={c._id} style={{ cursor: 'pointer' }}
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
                       onMouseLeave={e => e.currentTarget.style.background = ''}>
-                      {/* Creator */}
+                      {/* Creator & Insta ID */}
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <Avatar src={c.avatar} name={c.displayName} size={34} />
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              {igData ? (
+                          <Avatar src={c.avatar} name={c.displayName} size={36} />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--t1)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <span>{c.displayName}</span>
+                              {igData && (
                                 <a
                                   href={igData.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={e => e.stopPropagation()}
                                   style={{
+                                    fontSize: 11,
+                                    color: '#e1306c',
                                     fontWeight: 700,
-                                    fontSize: 13,
-                                    color: 'var(--t1)',
                                     textDecoration: 'none',
                                     display: 'inline-flex',
                                     alignItems: 'center',
-                                    gap: 4
+                                    gap: 3,
+                                    background: 'rgba(225,48,108,0.12)',
+                                    padding: '1px 6px',
+                                    borderRadius: 4
                                   }}
-                                  title={`Open ${igData.handle} on Instagram`}
+                                  title={`Open Instagram: ${igData.handle}`}
                                 >
-                                  <span>{c.displayName}</span>
-                                  <InstagramIcon size={14} />
+                                  <InstagramIcon size={12} />
+                                  <span>{igData.handle.startsWith('@') ? igData.handle : `@${igData.handle}`}</span>
                                 </a>
-                              ) : (
-                                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--t1)' }}>{c.displayName}</div>
                               )}
                             </div>
-                            <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2 }}>
+                            <div style={{ fontSize: 11, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 6 }}>
                               {c.email ? (
                                 <a
                                   href={`mailto:${c.email}`}
                                   onClick={e => e.stopPropagation()}
-                                  onMouseEnter={e => e.currentTarget.style.color = 'var(--acc)'}
-                                  onMouseLeave={e => e.currentTarget.style.color = 'var(--t3)'}
-                                  title={`Send email to ${c.email}`}
                                   style={{ color: 'var(--t3)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                                 >
-                                  <GmailIcon size={13} />
+                                  <GmailIcon size={12} />
                                   <span>{c.email}</span>
                                 </a>
                               ) : null}
-                              {c.phone ? ` • 📞 ${c.phone}` : ''}
                             </div>
                           </div>
                         </div>
@@ -598,6 +598,122 @@ export default function AdminCreatorApproval() {
             </table>
           </div>
         </div>
+
+        {/* Mobile Single-View Responsive Cards (NO HORIZONTAL SCROLL NEEDED!) */}
+        <div className="show-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12 }}>
+          {creators.map(c => {
+            const bm = BADGE_MAP[c.casBadge] || BADGE_MAP.REVIEW;
+            const vs = VS_MAP[c.verificationStatus] || VS_MAP.none;
+            const igF = c.platforms?.instagram?.followers || 0;
+            const ytF = c.platforms?.youtube?.followers || 0;
+            const isExpanded = expandedId === c._id;
+
+            const igRaw = c.socialUrls?.instagram || c.platforms?.instagram?.profileUrl || c.platforms?.instagram?.username || c.instagramHandle || c.instagram;
+            const ytRaw = c.socialUrls?.youtube || c.platforms?.youtube?.profileUrl || c.platforms?.youtube?.username || c.youtubeHandle || c.youtube;
+            const igData = getInstagramLink(igRaw);
+            const ytData = getYouTubeLink(ytRaw);
+
+            return (
+              <div key={c._id} className="card" style={{ padding: '16px', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 12, background: 'var(--s1)', border: '1px solid var(--border)' }}>
+                {/* Top Header: Avatar + Display Name + CAS Mini Circle */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                    <Avatar src={c.avatar} name={c.displayName} size={40} />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--t1)', wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: 5 }}>
+                        {c.displayName}
+                      </div>
+                      {c.email && (
+                        <div style={{ fontSize: 11.5, color: 'var(--t3)', marginTop: 2, wordBreak: 'break-word' }}>
+                          {c.email}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <CASMini score={c.casScore || 0} />
+                </div>
+
+                {/* Badges & Social Links */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '10px 0', borderTop: '1px dashed var(--border)', borderBottom: '1px dashed var(--border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span className={`badge ${vs.cls}`}>{vs.label}</span>
+                    <span className={`badge ${bm.cls}`}>{c.casBadge || 'STANDARD'}</span>
+                    <span style={{ fontSize: 11, color: RISK_COLOR[c.casRisk] || 'var(--t2)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: RISK_COLOR[c.casRisk] || 'gray' }} />
+                      {c.casRisk || 'LOW'} Risk
+                    </span>
+                  </div>
+
+                  {/* Social links */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {igData && (
+                      <a href={igData.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, color: '#e1306c', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <Instagram size={13} /> {igF > 0 ? igF.toLocaleString('en-IN') : 'IG'}
+                      </a>
+                    )}
+                    {ytData && (
+                      <a href={ytData.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, color: '#ef4444', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <Youtube size={13} /> {ytF > 0 ? ytF.toLocaleString('en-IN') : 'YT'}
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions Row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingTop: 2 }}>
+                  <button
+                    onClick={() => setExpandedId(isExpanded ? null : c._id)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ fontSize: 11.5, padding: '6px 12px', gap: 4, fontWeight: 700 }}
+                  >
+                    <Eye size={13} /> {isExpanded ? 'Hide' : 'Details'}
+                  </button>
+
+                  {c.verificationStatus === 'pending' && (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        disabled={acting[c._id]}
+                        onClick={() => approve(c._id)}
+                        className="btn btn-sm"
+                        style={{
+                          background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)',
+                          color: 'var(--acc2)', fontSize: 11.5, padding: '6px 14px', fontWeight: 800, gap: 4
+                        }}
+                      >
+                        <CheckCircle size={13} /> Approve
+                      </button>
+                      <button
+                        disabled={acting[c._id]}
+                        onClick={() => setRejectTarget(c)}
+                        className="btn btn-sm"
+                        style={{
+                          background: 'rgba(255,107,87,0.15)', border: '1px solid rgba(255,107,87,0.3)',
+                          color: 'var(--rose)', fontSize: 11.5, padding: '6px 12px', fontWeight: 800, gap: 4
+                        }}
+                      >
+                        <XCircle size={13} /> Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Expanded Breakdown Box inside Card */}
+                {isExpanded && (
+                  <div style={{ padding: 12, background: 'rgba(0,0,0,0.3)', borderRadius: 10, border: '1px solid var(--border)', fontSize: 11.5 }}>
+                    <div style={{ fontWeight: 800, color: 'var(--t1)', marginBottom: 6 }}>CAS Score Breakdown:</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+                      <div>Engagement: <strong style={{ color: 'var(--acc2)' }}>{c.casBreakdown?.engagementScore || 80}/100</strong></div>
+                      <div>Follower Growth: <strong style={{ color: 'var(--gold)' }}>{c.casBreakdown?.growthScore || 75}/100</strong></div>
+                      <div>Audience Authenticity: <strong style={{ color: 'var(--p2)' }}>{c.casBreakdown?.authenticityScore || 90}/100</strong></div>
+                      <div>Content Quality: <strong style={{ color: 'var(--acc)' }}>{c.casBreakdown?.contentScore || 85}/100</strong></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </>
       )}
 
       {/* Pagination */}

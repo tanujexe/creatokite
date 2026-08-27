@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Btn, Input, Textarea, Avatar } from '../../components/ui';
+import { Btn, Input, Textarea, Avatar, Modal } from '../../components/ui';
 import { adminAPI } from '../../api';
 import toast from 'react-hot-toast';
 import {
@@ -687,7 +687,7 @@ export default function NotificationCenter() {
                         </td>
                         <td style={{ padding: '12px 14px', textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-                            <button className="btn btn-ghost btn-xs" onClick={() => toast.success(`Viewing notification "${n.title}"`)} title="View Detail">
+                            <button className="btn btn-ghost btn-xs" onClick={() => setSelectedDetailNotif(n)} title="View Detail">
                               <Eye size={12} />
                             </button>
                             <button className="btn btn-ghost btn-xs" onClick={() => toast.success(`Duplicated "${n.title}"`)} title="Duplicate">
@@ -718,7 +718,7 @@ export default function NotificationCenter() {
                   {/* Top Row: Checkbox + Title + Priority */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                     <input type="checkbox" checked={selectedNotifIds.includes(n.id)} onChange={() => toggleSelectOne(n.id)} style={{ marginTop: 3, cursor: 'pointer' }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setSelectedDetailNotif(n)}>
                       <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--t1)', wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         {n.pinned && <span>📌</span>}
                         {n.title}
@@ -759,7 +759,7 @@ export default function NotificationCenter() {
 
                   {/* Bottom Row: Actions */}
                   <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 4 }}>
-                    <button className="btn btn-secondary btn-sm" onClick={() => toast.success(`Viewing "${n.title}"`)} style={{ fontSize: 11.5, padding: '6px 12px', gap: 4, fontWeight: 700 }}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setSelectedDetailNotif(n)} style={{ fontSize: 11.5, padding: '6px 12px', gap: 4, fontWeight: 700 }}>
                       <Eye size={13} /> Details
                     </button>
                     <button className="btn btn-secondary btn-sm" onClick={() => toast.success(`Duplicated "${n.title}"`)} style={{ fontSize: 11.5, padding: '6px 12px', gap: 4 }}>
@@ -920,6 +920,101 @@ export default function NotificationCenter() {
           </div>
         </div>
       )}
+
+      {/* ── Notification Detail Modal ── */}
+      <Modal open={!!selectedDetailNotif} onClose={() => setSelectedDetailNotif(null)} title="" maxWidth={560}>
+        {selectedDetailNotif && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, fontFamily: 'Inter, sans-serif' }}>
+            {/* Header */}
+            <div style={{ paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+                <span style={{
+                  padding: '3px 10px', borderRadius: 99, fontSize: 10.5, fontWeight: 800,
+                  background: selectedDetailNotif.priority === 'Critical' ? 'rgba(255,107,87,0.15)' : selectedDetailNotif.priority === 'High' ? 'rgba(245,166,35,0.15)' : 'rgba(108,99,255,0.15)',
+                  color: selectedDetailNotif.priority === 'Critical' ? 'var(--rose)' : selectedDetailNotif.priority === 'High' ? 'var(--gold)' : 'var(--p2)'
+                }}>
+                  {selectedDetailNotif.priority || 'Normal'} Priority
+                </span>
+                {selectedDetailNotif.type && (
+                  <span style={{ padding: '3px 10px', borderRadius: 99, background: 'rgba(230,95,43,0.12)', color: 'var(--acc)', fontSize: 10.5, fontWeight: 800 }}>
+                    {selectedDetailNotif.type}
+                  </span>
+                )}
+                {selectedDetailNotif.pinned && (
+                  <span style={{ padding: '3px 10px', borderRadius: 99, background: 'rgba(212,162,76,0.12)', color: 'var(--gold)', fontSize: 10.5, fontWeight: 800 }}>
+                    📌 Pinned
+                  </span>
+                )}
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', margin: 0, wordBreak: 'break-word', lineHeight: 1.3 }}>
+                {selectedDetailNotif.title}
+              </h3>
+              {selectedDetailNotif.subtitle && (
+                <div style={{ fontSize: 12.5, color: 'var(--t3)', marginTop: 4, wordBreak: 'break-word' }}>
+                  {selectedDetailNotif.subtitle}
+                </div>
+              )}
+            </div>
+
+            {/* Content Box */}
+            <div style={{ padding: '14px 16px', background: 'var(--s2)', borderRadius: 12, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', marginBottom: 6 }}>Message Content</div>
+              <div style={{ fontSize: 13.5, color: 'var(--t1)', lineHeight: 1.6, wordBreak: 'break-word', whiteSpace: 'pre-line' }}>
+                {selectedDetailNotif.content || selectedDetailNotif.subtitle || 'No content message body.'}
+              </div>
+              {selectedDetailNotif.ctaUrl && (
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed var(--border)' }}>
+                  <button
+                    onClick={() => { setSelectedDetailNotif(null); navigate(selectedDetailNotif.ctaUrl); }}
+                    className="btn btn-primary btn-sm"
+                    style={{ fontSize: 12, gap: 6, fontWeight: 700 }}
+                  >
+                    <ExternalLink size={13} /> {selectedDetailNotif.ctaLabel || 'Open Link'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Metrics Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+              <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>Target Audience</div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--p2)', marginTop: 3 }}>
+                  👥 {selectedDetailNotif.audience || 'All Users'}
+                </div>
+              </div>
+
+              <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>Delivery Status</div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: selectedDetailNotif.status === 'Delivered' ? 'var(--acc2)' : '#6366f1', marginTop: 3 }}>
+                  ● {selectedDetailNotif.status || 'Delivered'}
+                </div>
+              </div>
+
+              <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>Open Rate / CTR</div>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--acc2)', marginTop: 3 }}>
+                  {selectedDetailNotif.openRate || '0%'} open ({selectedDetailNotif.ctr || '0%'} CTR)
+                </div>
+              </div>
+
+              <div style={{ padding: '10px 12px', background: 'var(--s2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>Dispatched Date</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)', marginTop: 3 }}>
+                  {selectedDetailNotif.createdAt || 'Recent'}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Close */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6 }}>
+              <Btn variant="secondary" size="sm" onClick={() => setSelectedDetailNotif(null)}>
+                Close
+              </Btn>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* ══════════════════════════════════════════════════
           CREATE NOTIFICATION STEPPER WIZARD MODAL

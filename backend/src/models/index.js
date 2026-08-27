@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema({
   commercialRate: { type: Number, default: 0 },
   availabilityStatus: { type: String, enum: ['Available', 'Busy', 'On Leave'], default: 'Available' },
   previousCampaignsCount: { type: Number, default: 0 },
-  reliabilityScore: { type: Number, default: 90, min: 0, max: 100 },
+  reliabilityScore: { type: Number, default: 50, min: 0, max: 100 },
   onboardingCompleted: { type: Boolean, default: false },
 
   /* Social */
