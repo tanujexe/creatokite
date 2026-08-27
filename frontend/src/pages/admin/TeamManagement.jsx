@@ -5,7 +5,7 @@ import {
   AlertCircle, Edit, Trash2, ArrowRight, Check, Clock, Eye, AlertOctagon, RefreshCw
 } from 'lucide-react';
 import { teamManagementAPI, campaignsAPI } from '../../api';
-import { PageLoader, Btn, StatCard, Avatar, StatusBadge, EmptyState, Modal, Input, Textarea, Select, ProgressBar, SearchBar } from '../../components/ui';
+import { PageLoader, Btn, StatCard, Avatar, StatusBadge, EmptyState, Modal, Input, Textarea, Select, ProgressBar, SearchBar, GmailIcon } from '../../components/ui';
 import toast from 'react-hot-toast';
 
 const PRIORITY_COLORS = {
@@ -311,8 +311,23 @@ export default function TeamManagement() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 6, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+      {/* Mobile Select for Tabs */}
+      <div className="show-mobile" style={{ display: 'none', marginBottom: 12 }}>
+        <select
+          value={activeTab}
+          onChange={e => setActiveTab(e.target.value)}
+          className="form-input"
+          style={{ width: '100%', height: 42, fontSize: 13, fontWeight: 700, borderRadius: 10, background: 'var(--s2)', color: 'var(--t1)' }}
+        >
+          <option value="overview">👥 Team Members ({members.length})</option>
+          <option value="task-center">📋 Global Task Center ({filteredTasks.length})</option>
+          <option value="activity-center">⚡ Team Activity Center</option>
+          <option value="analytics">📊 Performance Analytics</option>
+        </select>
+      </div>
+
+      {/* Desktop Tabs */}
+      <div className="hide-mobile" style={{ display: 'flex', gap: 6, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
         <button onClick={() => setActiveTab('overview')} className={`chip ${activeTab === 'overview' ? 'active' : ''}`} style={{ fontSize: 12, padding: '8px 16px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
           <Users size={14} /> Team Members ({members.length})
         </button>
@@ -336,53 +351,121 @@ export default function TeamManagement() {
           {members.length === 0 ? (
             <EmptyState icon="👥" title="No team members found" desc="Team directory is empty." />
           ) : (
-            <div className="rs-data-grid-wrap" style={{ display: 'flex', flexDirection: 'column' }}>
-              {/* Header row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.5fr 1fr', padding: '12px 18px', borderBottom: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>
-                <div>Member</div>
-                <div>Role / Department</div>
-                <div>Status</div>
-                <div>Active Tasks Summary</div>
-                <div style={{ textAlign: 'right' }}>Actions</div>
-              </div>
+            <>
+              {/* Desktop Grid View */}
+              <div className="rs-data-grid-wrap hide-mobile" style={{ display: 'flex', flexDirection: 'column' }}>
+                {/* Header row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.5fr 1fr', padding: '12px 18px', borderBottom: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>
+                  <div>Member</div>
+                  <div>Role / Department</div>
+                  <div>Status</div>
+                  <div>Active Tasks Summary</div>
+                  <div style={{ textAlign: 'right' }}>Actions</div>
+                </div>
 
-              {members.map(m => {
-                const totalActive = (m.stats?.inProgress || 0) + (m.stats?.total - m.stats?.completed - m.stats?.inProgress || 0);
-                return (
-                  <div key={m._id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.5fr 1fr', padding: '14px 18px', borderBottom: '1px solid var(--border)', alignItems: 'center', fontSize: 13 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <Avatar src={m.avatar} name={m.displayName} size={32} />
+                {members.map(m => {
+                  return (
+                    <div key={m._id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.5fr 1fr', padding: '14px 18px', borderBottom: '1px solid var(--border)', alignItems: 'center', fontSize: 13 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <Avatar src={m.avatar} name={m.displayName} size={32} />
+                        <div>
+                          <div style={{ fontWeight: 700, color: 'var(--t1)' }}>{m.displayName}</div>
+                          {m.email && (
+                            <a
+                              href={`mailto:${m.email}`}
+                              style={{ fontSize: 11, color: 'var(--t3)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}
+                              title={`Email ${m.email}`}
+                            >
+                              <GmailIcon size={12} />
+                              <span>{m.email}</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
                       <div>
-                        <div style={{ fontWeight: 700, color: 'var(--t1)' }}>{m.displayName}</div>
-                        <div style={{ fontSize: 11, color: 'var(--t3)' }}>{m.email}</div>
+                        <div style={{ textTransform: 'capitalize', fontWeight: 500 }}>{m.role?.replace('_', ' ')}</div>
+                        <div style={{ fontSize: 11, color: 'var(--t3)' }}>{m.teamDepartment || 'General'}</div>
+                      </div>
+                      <div>
+                        <StatusBadge status={m.availability || 'available'} />
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        <span className="badge badge-blue" style={{ fontSize: 9 }}>In Progress: {m.stats?.inProgress || 0}</span>
+                        <span className="badge badge-green" style={{ fontSize: 9 }}>Done: {m.stats?.completed || 0}</span>
+                        {m.stats?.overdue > 0 && (
+                          <span className="badge badge-red" style={{ fontSize: 9, fontWeight: 700 }}>Overdue: {m.stats.overdue}</span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                        <button onClick={() => navigate(`/admin/team-management/${m._id}`)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Eye size={12} /> Details
+                        </button>
+                        <button onClick={() => openCreateTask(m._id)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Plus size={12} /> Assign
+                        </button>
                       </div>
                     </div>
-                    <div>
-                      <div style={{ textTransform: 'capitalize', fontWeight: 500 }}>{m.role?.replace('_', ' ')}</div>
-                      <div style={{ fontSize: 11, color: 'var(--t3)' }}>{m.teamDepartment || 'General'}</div>
+                  );
+                })}
+              </div>
+
+              {/* Mobile Single-View Responsive Cards */}
+              <div className="show-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12, padding: 12 }}>
+                {members.map(m => {
+                  return (
+                    <div
+                      key={m._id}
+                      className="card"
+                      style={{ padding: '14px', borderRadius: 14, display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--s1)', border: '1px solid var(--border)' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                          <Avatar src={m.avatar} name={m.displayName} size={38} />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontWeight: 800, fontSize: 13.5, color: 'var(--t1)', wordBreak: 'break-word' }}>{m.displayName}</div>
+                            {m.email && (
+                              <a
+                                href={`mailto:${m.email}`}
+                                style={{ fontSize: 11, color: 'var(--t2)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 2, wordBreak: 'break-all' }}
+                                title={`Send email to ${m.email}`}
+                              >
+                                <GmailIcon size={12} />
+                                <span>{m.email}</span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <StatusBadge status={m.availability || 'available'} />
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '8px 0', borderTop: '1px dashed var(--border)', borderBottom: '1px dashed var(--border)', fontSize: 12 }}>
+                        <div>Role: <strong style={{ textTransform: 'capitalize', color: 'var(--t1)' }}>{m.role?.replace('_', ' ')}</strong></div>
+                        <div>Dept: <strong style={{ color: 'var(--p2)' }}>{m.teamDepartment || 'General'}</strong></div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                          <span className="badge badge-blue" style={{ fontSize: 9 }}>In Progress: {m.stats?.inProgress || 0}</span>
+                          <span className="badge badge-green" style={{ fontSize: 9 }}>Done: {m.stats?.completed || 0}</span>
+                          {m.stats?.overdue > 0 && (
+                            <span className="badge badge-red" style={{ fontSize: 9, fontWeight: 700 }}>Overdue: {m.stats.overdue}</span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button onClick={() => navigate(`/admin/team-management/${m._id}`)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Eye size={12} /> Details
+                          </button>
+                          <button onClick={() => openCreateTask(m._id)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Plus size={12} /> Assign
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <StatusBadge status={m.availability || 'available'} />
-                    </div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <span className="badge badge-blue" style={{ fontSize: 9 }}>In Progress: {m.stats?.inProgress || 0}</span>
-                      <span className="badge badge-green" style={{ fontSize: 9 }}>Done: {m.stats?.completed || 0}</span>
-                      {m.stats?.overdue > 0 && (
-                        <span className="badge badge-red" style={{ fontSize: 9, fontWeight: 700 }}>Overdue: {m.stats.overdue}</span>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                      <button onClick={() => navigate(`/admin/team-management/${m._id}`)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <Eye size={12} /> Details
-                      </button>
-                      <button onClick={() => openCreateTask(m._id)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <Plus size={12} /> Assign
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -444,91 +527,174 @@ export default function TeamManagement() {
             {filteredTasks.length === 0 ? (
               <EmptyState icon="📋" title="No tasks found" desc="Adjust your filters or assign a new task." />
             ) : (
-              <div className="rs-data-grid-wrap" style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1fr 1fr 1.2fr', padding: '10px 18px', borderBottom: '1px solid var(--border)', fontSize: 10, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>
-                  <div>Task Title & Campaign</div>
-                  <div>Assigned To</div>
-                  <div>Department</div>
-                  <div>Priority / Status</div>
-                  <div>Outreach Goal (DMs)</div>
-                  <div style={{ textAlign: 'right' }}>Actions</div>
+              <>
+                {/* Desktop Grid View */}
+                <div className="rs-data-grid-wrap hide-mobile" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1fr 1fr 1.2fr', padding: '10px 18px', borderBottom: '1px solid var(--border)', fontSize: 10, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase' }}>
+                    <div>Task Title & Campaign</div>
+                    <div>Assigned To</div>
+                    <div>Department</div>
+                    <div>Priority / Status</div>
+                    <div>Outreach Goal (DMs)</div>
+                    <div style={{ textAlign: 'right' }}>Actions</div>
+                  </div>
+
+                  {filteredTasks.map(t => {
+                    const isOverdue = t.status !== 'done' && t.dueDate && new Date(t.dueDate) < now;
+                    const isHigh = t.priority === 'high' || t.priority === 'urgent';
+                    return (
+                      <div key={t._id} style={{
+                        display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1fr 1fr 1.2fr', padding: '14px 18px', borderBottom: '1px solid var(--border)', alignItems: 'center', fontSize: 12.5,
+                        background: isOverdue ? 'rgba(232,93,69,0.02)' : ''
+                      }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontWeight: 700, color: 'var(--t1)' }}>{t.title}</span>
+                            {isOverdue && <span style={{ color: 'var(--rose)', fontSize: 9, fontWeight: 700, background: 'rgba(232,93,69,0.1)', padding: '1px 5px', borderRadius: 4 }}>OVERDUE</span>}
+                            {isHigh && <span style={{ color: 'var(--rose)', fontSize: 9, fontWeight: 700, background: 'rgba(232,93,69,0.1)', padding: '1px 5px', borderRadius: 4 }}>HIGH</span>}
+                          </div>
+                          <div style={{ fontSize: 10.5, color: 'var(--t3)', marginTop: 2 }}>
+                            {t.campaign?.title ? `Campaign: ${t.campaign.title}` : 'General Admin Task'}
+                            {t.dueDate && ` · Due: ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <Avatar src={t.assignedTo?.[0]?.avatar} name={t.assignedTo?.[0]?.displayName} size={24} />
+                          <span style={{ fontWeight: 500 }}>{t.assignedTo?.[0]?.displayName || 'Unassigned'}</span>
+                        </div>
+
+                        <div style={{ color: 'var(--t2)', textTransform: 'capitalize' }}>
+                          {t.department || 'General'}
+                        </div>
+
+                        <div>
+                          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 9, color: PRIORITY_COLORS[t.priority], background: `${PRIORITY_COLORS[t.priority]}15`, padding: '2px 6px', borderRadius: 99, fontWeight: 700, border: `1px solid ${PRIORITY_COLORS[t.priority]}30` }}>
+                              {t.priority}
+                            </span>
+                            <span style={{ fontSize: 9, color: STATUS_COLORS[t.status], background: `${STATUS_COLORS[t.status]}15`, padding: '2px 6px', borderRadius: 99, fontWeight: 700, border: `1px solid ${STATUS_COLORS[t.status]}30` }}>
+                              {t.status?.replace('_', ' ')}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          {t.outreachGoal?.targetDMs > 0 ? (
+                            <div style={{ width: '90%' }}>
+                              <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--acc2)', marginBottom: 2 }}>
+                                {t.outreachGoal.currentDMs} / {t.outreachGoal.targetDMs} DMs
+                              </div>
+                              <ProgressBar value={t.outreachGoal.currentDMs} max={t.outreachGoal.targetDMs} color="var(--acc2)" height={3} />
+                            </div>
+                          ) : (
+                            <span style={{ color: 'var(--t3)', fontSize: 11 }}>—</span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                          <select className="form-input" style={{ width: 85, height: 26, fontSize: 10, padding: '0 4px', background: 'var(--s1)', border: '1px solid var(--border)' }} value={t.status} onChange={e => toggleTaskStatus(t, e.target.value)}>
+                            <option value="todo">To Do</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="review">Review</option>
+                            <option value="done">Completed</option>
+                            <option value="blocked">Blocked</option>
+                          </select>
+                          <button onClick={() => { setReassignTaskData(t); setReassignModalOpen(true); }} className="btn btn-ghost btn-sm" style={{ padding: 4, height: 26 }} title="Reassign">
+                            🔄
+                          </button>
+                          <button onClick={() => openEditTask(t)} className="btn btn-ghost btn-sm" style={{ padding: 4, height: 26 }} title="Edit">
+                            <Edit size={12} />
+                          </button>
+                          <button onClick={() => handleDeleteTask(t._id)} className="btn btn-ghost btn-sm" style={{ padding: 4, height: 26, color: 'var(--rose)' }} title="Delete">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {filteredTasks.map(t => {
-                  const isOverdue = t.status !== 'done' && t.dueDate && new Date(t.dueDate) < now;
-                  const isHigh = t.priority === 'high' || t.priority === 'urgent';
-                  return (
-                    <div key={t._id} style={{
-                      display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1fr 1fr 1.2fr', padding: '14px 18px', borderBottom: '1px solid var(--border)', alignItems: 'center', fontSize: 12.5,
-                      background: isOverdue ? 'rgba(232,93,69,0.02)' : ''
-                    }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontWeight: 700, color: 'var(--t1)' }}>{t.title}</span>
-                          {isOverdue && <span style={{ color: 'var(--rose)', fontSize: 9, fontWeight: 700, background: 'rgba(232,93,69,0.1)', padding: '1px 5px', borderRadius: 4 }}>OVERDUE</span>}
-                          {isHigh && <span style={{ color: 'var(--rose)', fontSize: 9, fontWeight: 700, background: 'rgba(232,93,69,0.1)', padding: '1px 5px', borderRadius: 4 }}>HIGH</span>}
+                {/* Mobile Single-View Responsive Cards */}
+                <div className="show-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12, padding: 12 }}>
+                  {filteredTasks.map(t => {
+                    const isOverdue = t.status !== 'done' && t.dueDate && new Date(t.dueDate) < now;
+                    const isHigh = t.priority === 'high' || t.priority === 'urgent';
+                    const assignee = t.assignedTo?.[0];
+
+                    return (
+                      <div
+                        key={t._id}
+                        className="card"
+                        style={{ padding: '14px', borderRadius: 14, display: 'flex', flexDirection: 'column', gap: 10, background: isOverdue ? 'rgba(232,93,69,0.03)' : 'var(--s1)', border: isOverdue ? '1px solid rgba(232,93,69,0.25)' : '1px solid var(--border)' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                          <div style={{ fontWeight: 800, fontSize: 13.5, color: 'var(--t1)', wordBreak: 'break-word', flex: 1 }}>
+                            {t.title}
+                          </div>
+                          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                            {isOverdue && <span style={{ color: 'var(--rose)', fontSize: 9, fontWeight: 700, background: 'rgba(232,93,69,0.15)', padding: '2px 6px', borderRadius: 4 }}>OVERDUE</span>}
+                            {isHigh && <span style={{ color: 'var(--rose)', fontSize: 9, fontWeight: 700, background: 'rgba(232,93,69,0.15)', padding: '2px 6px', borderRadius: 4 }}>HIGH</span>}
+                          </div>
                         </div>
-                        <div style={{ fontSize: 10.5, color: 'var(--t3)', marginTop: 2 }}>
+
+                        <div style={{ fontSize: 11, color: 'var(--t3)' }}>
                           {t.campaign?.title ? `Campaign: ${t.campaign.title}` : 'General Admin Task'}
                           {t.dueDate && ` · Due: ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
                         </div>
-                      </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Avatar src={t.assignedTo?.[0]?.avatar} name={t.assignedTo?.[0]?.displayName} size={24} />
-                        <span style={{ fontWeight: 500 }}>{t.assignedTo?.[0]?.displayName || 'Unassigned'}</span>
-                      </div>
-
-                      <div style={{ color: 'var(--t2)', textTransform: 'capitalize' }}>
-                        {t.department || 'General'}
-                      </div>
-
-                      <div>
-                        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 9, color: PRIORITY_COLORS[t.priority], background: `${PRIORITY_COLORS[t.priority]}15`, padding: '2px 6px', borderRadius: 99, fontWeight: 700, border: `1px solid ${PRIORITY_COLORS[t.priority]}30` }}>
-                            {t.priority}
-                          </span>
-                          <span style={{ fontSize: 9, color: STATUS_COLORS[t.status], background: `${STATUS_COLORS[t.status]}15`, padding: '2px 6px', borderRadius: 99, fontWeight: 700, border: `1px solid ${STATUS_COLORS[t.status]}30` }}>
-                            {t.status?.replace('_', ' ')}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div>
-                        {t.outreachGoal?.targetDMs > 0 ? (
-                          <div style={{ width: '90%' }}>
-                            <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--acc2)', marginBottom: 2 }}>
-                              {t.outreachGoal.currentDMs} / {t.outreachGoal.targetDMs} DMs
-                            </div>
-                            <ProgressBar value={t.outreachGoal.currentDMs} max={t.outreachGoal.targetDMs} color="var(--acc2)" height={3} />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '8px 0', borderTop: '1px dashed var(--border)', borderBottom: '1px dashed var(--border)', fontSize: 12 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Avatar src={assignee?.avatar} name={assignee?.displayName} size={22} />
+                            <span style={{ fontWeight: 600 }}>{assignee?.displayName || 'Unassigned'}</span>
                           </div>
-                        ) : (
-                          <span style={{ color: 'var(--t3)', fontSize: 11 }}>—</span>
+                          <div>Dept: <strong style={{ color: 'var(--p2)', textTransform: 'capitalize' }}>{t.department || 'General'}</strong></div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 10, color: PRIORITY_COLORS[t.priority], background: `${PRIORITY_COLORS[t.priority]}15`, padding: '2px 8px', borderRadius: 99, fontWeight: 700, border: `1px solid ${PRIORITY_COLORS[t.priority]}30` }}>
+                              {t.priority}
+                            </span>
+                            <span style={{ fontSize: 10, color: STATUS_COLORS[t.status], background: `${STATUS_COLORS[t.status]}15`, padding: '2px 8px', borderRadius: 99, fontWeight: 700, border: `1px solid ${STATUS_COLORS[t.status]}30` }}>
+                              {t.status?.replace('_', ' ')}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <select className="form-input" style={{ width: 100, height: 30, fontSize: 11, padding: '0 6px', background: 'var(--s1)', border: '1px solid var(--border)' }} value={t.status} onChange={e => toggleTaskStatus(t, e.target.value)}>
+                              <option value="todo">To Do</option>
+                              <option value="in_progress">In Progress</option>
+                              <option value="review">Review</option>
+                              <option value="done">Completed</option>
+                              <option value="blocked">Blocked</option>
+                            </select>
+
+                            <button onClick={() => { setReassignTaskData(t); setReassignModalOpen(true); }} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', height: 30 }} title="Reassign">
+                              🔄
+                            </button>
+                            <button onClick={() => openEditTask(t)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', height: 30 }} title="Edit">
+                              <Edit size={13} />
+                            </button>
+                            <button onClick={() => handleDeleteTask(t._id)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', height: 30, color: 'var(--rose)' }} title="Delete">
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {t.outreachGoal?.targetDMs > 0 && (
+                          <div style={{ width: '100%', marginTop: 4 }}>
+                            <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--acc2)', marginBottom: 2 }}>
+                              Outreach: {t.outreachGoal.currentDMs} / {t.outreachGoal.targetDMs} DMs
+                            </div>
+                            <ProgressBar value={t.outreachGoal.currentDMs} max={t.outreachGoal.targetDMs} color="var(--acc2)" height={4} />
+                          </div>
                         )}
                       </div>
-
-                      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                        <select className="form-input" style={{ width: 85, height: 26, fontSize: 10, padding: '0 4px', background: 'var(--s1)', border: '1px solid var(--border)' }} value={t.status} onChange={e => toggleTaskStatus(t, e.target.value)}>
-                          <option value="todo">To Do</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="review">Review</option>
-                          <option value="done">Completed</option>
-                          <option value="blocked">Blocked</option>
-                        </select>
-                        <button onClick={() => { setReassignTaskData(t); setReassignModalOpen(true); }} className="btn btn-ghost btn-sm" style={{ padding: 4, height: 26 }} title="Reassign">
-                          🔄
-                        </button>
-                        <button onClick={() => openEditTask(t)} className="btn btn-ghost btn-sm" style={{ padding: 4, height: 26 }} title="Edit">
-                          <Edit size={12} />
-                        </button>
-                        <button onClick={() => handleDeleteTask(t._id)} className="btn btn-ghost btn-sm" style={{ padding: 4, height: 26, color: 'var(--rose)' }} title="Delete">
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         </div>
